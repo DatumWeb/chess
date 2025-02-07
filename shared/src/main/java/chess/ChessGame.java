@@ -69,26 +69,29 @@ public class ChessGame {
         HashSet<ChessMove> validMoves = new HashSet<>();
 
         ChessPiece pieceToMove = gameBoard.getPiece(startPosition);
-        if (pieceToMove == null) {
+        if (pieceToMove == null || pieceToMove.getTeamColor() != whosTurn) {
             return null;
         }
 
+
         Collection<ChessMove> movesToCheck = pieceToMove.pieceMoves(gameBoard, startPosition);
 
-        boolean startedInCheck = isInCheck(whosTurn);
-
-
-
-        //TODO
 
         for (ChessMove move : movesToCheck) {
             ChessBoard simulationBoard = makeSimulationBoard();
-            ChessPiece piece = simulationBoard.getPiece(move.getEndPosition());
 
-            simulationBoard.addPiece(move.getEndPosition(),piece);
+            simulationBoard.addPiece(move.getEndPosition(), simulationBoard.getPiece(move.getStartPosition()));
             simulationBoard.addPiece(move.getStartPosition(), null);
-            if ()
+
+            ChessGame simulationGame = new ChessGame();
+            simulationGame.setBoard(simulationBoard);
+            simulationGame.setTeamTurn(whosTurn); // Ensure turn matches simulation
+
+            if (!simulationGame.isInCheck(whosTurn)) {
+                validMoves.add(move);
+            }
         }
+
         return validMoves;
     }
 
@@ -99,7 +102,25 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        ChessPiece pieceToMove = gameBoard.getPiece(move.getStartPosition());
+
+        if (pieceToMove == null || pieceToMove.getTeamColor() != whosTurn) {
+            throw new InvalidMoveException("That isn't your piece");
+        }
+
+        Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
+
+        if(validMoves == null || !validMoves.contains(move)) {
+            throw new InvalidMoveException("This move is invalid");
+        }
+
+        ChessPiece pieceToCapture = gameBoard.getPiece(move.getEndPosition()); //I think I might need to make this null after this
+        gameBoard.addPiece(move.getEndPosition(), pieceToMove);
+        gameBoard.addPiece(move.getStartPosition(), null); //should I make a remove piece function
+
+        TeamColor opposingTeam = (whosTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+
+        whosTurn = (whosTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
 
     /**
@@ -114,11 +135,42 @@ public class ChessGame {
         //find the king
         //find if any piece on the other team can make a move to the king
         ChessPosition kingPosition = null;
-        for(int row = 0; row < 8; row++) {
-            for(int col = 0; col <8; col++){
-                ChessPiece piece = boar
+        for(int row = 1; row <= 8; row++) {
+            for(int col = 1; col <= 8; col++){
+                ChessPosition currentPosition = new ChessPosition(row, col);
+                ChessPiece pieceAt = gameBoard.getPiece(currentPosition);
+
+                if (pieceAt != null && pieceAt.getPieceType() == ChessPiece.PieceType.KING && pieceAt.getTeamColor() ==teamColor) {
+                    kingPosition = currentPosition;
+                    break;
+                }
+            }
+            if (kingPosition != null) break;
+
+        }
+
+        //need to place
+        TeamColor opposingTeam = (teamColor == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition currentPosition = new ChessPosition(row, col);
+                ChessPiece piece = gameBoard.getPiece(currentPosition);
+
+                if (piece != null && piece.getTeamColor() == opposingTeam) {
+                    Collection<ChessMove> possibleMoves = piece.pieceMoves(gameBoard, currentPosition);
+
+                    for (ChessMove move : possibleMoves) {
+                        if (move.getEndPosition().equals(kingPosition)) {
+                            return true;
+                        }
+                    }
+                }
             }
         }
+        return  false;
+
+
     }
 
     /**
