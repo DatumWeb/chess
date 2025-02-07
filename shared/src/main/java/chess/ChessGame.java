@@ -2,6 +2,7 @@ package chess;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -66,30 +67,26 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        HashSet<ChessMove> validMoves = new HashSet<>();
-
-        ChessPiece pieceToMove = gameBoard.getPiece(startPosition);
-        if (pieceToMove == null || pieceToMove.getTeamColor() != whosTurn) {
+        ChessPiece piece = gameBoard.getPiece(startPosition);
+        if (piece == null || piece.getTeamColor() != whosTurn) {
             return null;
         }
 
+        Collection<ChessMove> possibleMoves = piece.pieceMoves(gameBoard, startPosition);
+        HashSet<ChessMove> validMoves = new HashSet<>();
 
-        Collection<ChessMove> movesToCheck = pieceToMove.pieceMoves(gameBoard, startPosition);
+        for (ChessMove move : possibleMoves) {
+            ChessPiece capturedPiece = gameBoard.getPiece(move.getEndPosition());
+            gameBoard.addPiece(move.getStartPosition(), null);
+            gameBoard.addPiece(move.getEndPosition(), piece);
 
-
-        for (ChessMove move : movesToCheck) {
-            ChessBoard simulationBoard = makeSimulationBoard();
-
-            simulationBoard.addPiece(move.getEndPosition(), simulationBoard.getPiece(move.getStartPosition()));
-            simulationBoard.addPiece(move.getStartPosition(), null);
-
-            ChessGame simulationGame = new ChessGame();
-            simulationGame.setBoard(simulationBoard);
-            simulationGame.setTeamTurn(whosTurn); // Ensure turn matches simulation
-
-            if (!simulationGame.isInCheck(whosTurn)) {
+            if (!isInCheck(whosTurn)) {
                 validMoves.add(move);
             }
+
+            // Revert board state
+            gameBoard.addPiece(move.getEndPosition(), capturedPiece);
+            gameBoard.addPiece(move.getStartPosition(), piece);
         }
 
         return validMoves;
@@ -102,25 +99,24 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        ChessPiece pieceToMove = gameBoard.getPiece(move.getStartPosition());
-
-        if (pieceToMove == null || pieceToMove.getTeamColor() != whosTurn) {
-            throw new InvalidMoveException("That isn't your piece");
-        }
-
         Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
 
-        if(validMoves == null || !validMoves.contains(move)) {
+        if (validMoves == null || !validMoves.contains(move)) {
             throw new InvalidMoveException("This move is invalid");
         }
 
-        ChessPiece pieceToCapture = gameBoard.getPiece(move.getEndPosition()); //I think I might need to make this null after this
-        gameBoard.addPiece(move.getEndPosition(), pieceToMove);
-        gameBoard.addPiece(move.getStartPosition(), null); //should I make a remove piece function
+        boolean activeTeam = getTeamTurn() == gameBoard.getTeamOnSquare(move.getStartPosition());
 
-        TeamColor opposingTeam = (whosTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+        if (validMoves.contains(move) && activeTeam == true){
+            ChessPiece pieceToMove = gameBoard.getPiece(move.getStartPosition());
+            gameBoard.addPiece(move.getEndPosition(), pieceToMove);
+            gameBoard.addPiece(move.getStartPosition(), null);
+            setTeamTurn(getTeamTurn() == TeamColor.BLACK ? TeamColor.WHITE : TeamColor.BLACK);
+        }
 
-        whosTurn = (whosTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+        // Make the move
+
+
     }
 
     /**
@@ -252,5 +248,26 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return gameBoard;
+    }
+
+    @Override
+    public String toString() {
+        return "ChessGame{" +
+                "teamTurn=" + whosTurn +
+                ", board=" + gameBoard +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChessGame chessGame = (ChessGame) o;
+        return whosTurn == chessGame.whosTurn && Objects.equals(gameBoard, chessGame.gameBoard);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(whosTurn, gameBoard);
     }
 }
