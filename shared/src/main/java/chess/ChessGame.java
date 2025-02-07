@@ -78,8 +78,16 @@ public class ChessGame {
         boolean startedInCheck = isInCheck(whosTurn);
 
 
+
+        //TODO
+
         for (ChessMove move : movesToCheck) {
-            ChessBoard testBoard = new ChessBoard();
+            ChessBoard simulationBoard = makeSimulationBoard();
+            ChessPiece piece = simulationBoard.getPiece(move.getEndPosition());
+
+            simulationBoard.addPiece(move.getEndPosition(),piece);
+            simulationBoard.addPiece(move.getStartPosition(), null);
+            if ()
         }
         return validMoves;
     }
@@ -103,7 +111,14 @@ public class ChessGame {
     public boolean isInCheck(TeamColor teamColor) {
         //if teamColor is in check return true
         //else return false
-        throw new RuntimeException("Not implemented");
+        //find the king
+        //find if any piece on the other team can make a move to the king
+        ChessPosition kingPosition = null;
+        for(int row = 0; row < 8; row++) {
+            for(int col = 0; col <8; col++){
+                ChessPiece piece = boar
+            }
+        }
     }
 
     /**
