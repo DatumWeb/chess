@@ -10,7 +10,8 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    private  ChessPiece[][] boardGrid;
+    private ChessPiece[][] boardGrid;
+
     public ChessBoard() {
         boardGrid = new ChessPiece[8][8];
 
@@ -40,7 +41,7 @@ public class ChessBoard {
     }
 
     public ChessGame.TeamColor getTeamOnSquare(ChessPosition position) {
-        if (getPiece(position) == null){
+        if (getPiece(position) == null) {
             return null;
         } else {
             return getPiece(position).getTeamColor();
@@ -96,7 +97,6 @@ public class ChessBoard {
         }
         return output.toString();
     }
-
 
 
     @Override
