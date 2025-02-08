@@ -3,6 +3,7 @@ package chess;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
+import chess.*;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -14,12 +15,13 @@ public class ChessGame {
 
     private TeamColor whosTurn;
     private ChessBoard gameBoard;
-    //private boolean gameOver;
+
 
     public ChessGame() {
         this.gameBoard = new ChessBoard();
         this.whosTurn = TeamColor.WHITE;
-        //this.gameOver = false;
+        gameBoard.resetBoard();
+
     }
 
     /**
@@ -76,6 +78,11 @@ public class ChessGame {
         return validMoves;
     }
 
+    private void simulateMove(ChessPosition start, ChessMove move) {
+        ChessPiece piece = gameBoard.getPiece(start);
+        gameBoard.addPiece(start, null);
+        gameBoard.addPiece(move.getEndPosition(), piece);
+    }
     private void undoMove(ChessPosition start, ChessMove move, ChessPiece capturedPiece) {
         ChessPiece piece = gameBoard.getPiece(move.getEndPosition());
         gameBoard.addPiece(move.getEndPosition(), capturedPiece);
@@ -103,6 +110,10 @@ public class ChessGame {
         gameBoard.addPiece(move.getStartPosition(), null);
         gameBoard.addPiece(move.getEndPosition(), pieceToMove);
         switchTurn();
+    }
+
+    private void switchTurn() {
+        whosTurn = (whosTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
 
     /**
@@ -180,6 +191,10 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
+        if (isInCheck(teamColor)){
+            return false;
+
+        }
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
                 ChessPosition position = new ChessPosition(row, col);
@@ -214,34 +229,6 @@ public class ChessGame {
         return gameBoard;
     }
 
-    //public void setGameOver(boolean gameOver) {
-    //    this.gameOver = gameOver;
-    //}
-
-    //public boolean isGameOver() {
-    //    return gameOver;
-    //}
-
-    private void switchTurn() {
-        whosTurn = (whosTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
-    }
-
-
-
-    private void simulateMove(ChessPosition start, ChessMove move) {
-        ChessPiece piece = gameBoard.getPiece(start);
-        gameBoard.addPiece(start, null);
-        gameBoard.addPiece(move.getEndPosition(), piece);
-    }
-
-
-    @Override
-    public String toString() {
-        return "ChessGame{" +
-                "teamTurn=" + whosTurn +
-                ", board=" + gameBoard +
-                '}';
-    }
 
     @Override
     public boolean equals(Object o) {
