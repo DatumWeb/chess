@@ -19,7 +19,8 @@ public class PawnMoveCalculator implements PieceMoveCalculators {
         int moveDirection = (teamColor == WHITE) ? 1 : -1;
         boolean isPromotionRow = (teamColor == WHITE && currentY == 7) || (teamColor == BLACK && currentY == 2);
         ChessPiece.PieceType[] promotionOptions = isPromotionRow
-                ? new ChessPiece.PieceType[]{ChessPiece.PieceType.ROOK, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KNIGHT}
+                ? new ChessPiece.PieceType[]
+                {ChessPiece.PieceType.ROOK, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KNIGHT}
                 : new ChessPiece.PieceType[]{null};
 
         for (ChessPiece.PieceType promotionPiece : promotionOptions) {
