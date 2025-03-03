@@ -16,7 +16,7 @@ public class ChessMove {
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
         this.startPosition = startPosition;
-        this.endPostion= endPosition;
+        this.endPostion = endPosition;
         this.promotionPiece = promotionPiece;
     }
 
@@ -54,7 +54,10 @@ public class ChessMove {
             return false;
         }
         ChessMove chessMove = (ChessMove) o;
-        return Objects.equals(startPosition, chessMove.startPosition) && Objects.equals(endPostion, chessMove.endPostion) && promotionPiece == chessMove.promotionPiece;
+
+        return Objects.equals(startPosition, chessMove.startPosition) &&
+                Objects.equals(endPostion, chessMove.endPostion) &&
+                promotionPiece == chessMove.promotionPiece;
     }
 
     @Override

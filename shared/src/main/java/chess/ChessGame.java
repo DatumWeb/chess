@@ -132,17 +132,26 @@ public class ChessGame {
                 ChessPosition currentPosition = new ChessPosition(row, col);
                 ChessPiece currentPiece = gameBoard.getPiece(currentPosition);
 
-                if (currentPiece != null && currentPiece.getTeamColor() != teamColor) {
-                    for (ChessMove move : currentPiece.pieceMoves(gameBoard, currentPosition)) {
-                        if (move.getEndPosition().equals(kingPosition)) {
-                            return true;
-                        }
-                    }
+                if (isThreateningKing(teamColor, currentPiece, currentPosition, kingPosition)) {
+                    return true;
                 }
             }
         }
         return false;
     }
+
+    private boolean isThreateningKing(TeamColor teamColor, ChessPiece piece, ChessPosition piecePosition, ChessPosition kingPosition) {
+        if (piece == null || piece.getTeamColor() == teamColor) {
+            return false;
+        }
+        for (ChessMove move : piece.pieceMoves(gameBoard, piecePosition)) {
+            if (move.getEndPosition().equals(kingPosition)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private boolean hasValidMoves(TeamColor teamColor) {
         for (int row = 1; row <= 8; row++) {

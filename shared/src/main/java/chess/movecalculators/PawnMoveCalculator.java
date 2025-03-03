@@ -5,54 +5,47 @@ import chess.*;
 import java.util.Set;
 import java.util.HashSet;
 
+import static chess.ChessGame.TeamColor.BLACK;
+import static chess.ChessGame.TeamColor.WHITE;
+
 public class PawnMoveCalculator implements PieceMoveCalculators {
-
     @Override
-    public Set<ChessMove> getMoves(ChessBoard board, ChessPosition currPosition) {
-        HashSet<ChessMove> moves = new HashSet<>(16); //16 is the max number of moves of a Pawn
-        int currX = currPosition.getColumn();
-        int currY = currPosition.getRow();
-        ChessPiece.PieceType[] promotionPieces = new ChessPiece.PieceType[]{null};
+    public Set<ChessMove> getMoves(ChessBoard board, ChessPosition currentPosition) {
+        Set<ChessMove> moves = new HashSet<>();
+        int currentX = currentPosition.getColumn();
+        int currentY = currentPosition.getRow();
+        ChessGame.TeamColor teamColor = board.getTeamOnSquare(currentPosition);
 
-        ChessGame.TeamColor team = board.getTeamOnSquare(currPosition);
-        int moveIncrement = team == ChessGame.TeamColor.WHITE ? 1 : -1;
+        int moveDirection = (teamColor == WHITE) ? 1 : -1;
+        boolean isPromotionRow = (teamColor == WHITE && currentY == 7) || (teamColor == BLACK && currentY == 2);
+        ChessPiece.PieceType[] promotionOptions = isPromotionRow
+                ? new ChessPiece.PieceType[]{ChessPiece.PieceType.ROOK, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KNIGHT}
+                : new ChessPiece.PieceType[]{null};
 
-        // Check for promotion
-        boolean promote = (team == ChessGame.TeamColor.WHITE && currY == 7) || (team == ChessGame.TeamColor.BLACK && currY == 2);
-        if (promote) {
-            promotionPieces = new ChessPiece.PieceType[]{ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.QUEEN};
-        }
+        for (ChessPiece.PieceType promotionPiece : promotionOptions) {
+            // One-step forward
+            ChessPosition oneStep = new ChessPosition(currentY + moveDirection, currentX);
+            if (isBoarded(oneStep) && board.getPiece(oneStep) == null) {
+                moves.add(new ChessMove(currentPosition, oneStep, promotionPiece));
 
-        for (ChessPiece.PieceType promotionPiece : promotionPieces) {
-
-            ChessPosition forwardPosition = new ChessPosition(currY + moveIncrement, currX);
-            if (isBoarded(forwardPosition) && board.getPiece(forwardPosition) == null) {
-                moves.add(new ChessMove(currPosition, forwardPosition, promotionPiece));
+                // Two-step forward
+                ChessPosition twoStep = new ChessPosition(currentY + moveDirection * 2, currentX);
+                if ((teamColor == WHITE && currentY == 2) || (teamColor == BLACK && currentY == 7)) {
+                    if (isBoarded(twoStep) && board.getPiece(twoStep) == null) {
+                        moves.add(new ChessMove(currentPosition, twoStep, promotionPiece));
+                    }
+                }
             }
 
-
-            ChessPosition leftAttack = new ChessPosition(currY + moveIncrement, currX - 1);
-            if (isBoarded(leftAttack) &&
-                    board.getPiece(leftAttack) != null &&
-                    board.getTeamOnSquare(leftAttack) != team) {
-                moves.add(new ChessMove(currPosition, leftAttack, promotionPiece));
+            // Capture moves
+            ChessPosition leftAttack = new ChessPosition(currentY + moveDirection, currentX - 1);
+            if (isBoarded(leftAttack) && board.getPiece(leftAttack) != null && teamColor != board.getTeamOnSquare(leftAttack)) {
+                moves.add(new ChessMove(currentPosition, leftAttack, promotionPiece));
             }
 
-
-            ChessPosition rightAttack = new ChessPosition(currY + moveIncrement, currX + 1);
-            if (isBoarded(rightAttack) &&
-                    board.getPiece(rightAttack) != null &&
-                    board.getTeamOnSquare(rightAttack) != team) {
-                moves.add(new ChessMove(currPosition, rightAttack, promotionPiece));
-            }
-
-            // Add first move double
-            ChessPosition doubleForwardPosition = new ChessPosition(currY + moveIncrement * 2, currX);
-            if (isBoarded(doubleForwardPosition) &&
-                    ((team == ChessGame.TeamColor.WHITE && currY == 2) || (team == ChessGame.TeamColor.BLACK && currY == 7)) &&
-                    board.getPiece(doubleForwardPosition) == null &&
-                    board.getPiece(forwardPosition) == null) {
-                moves.add(new ChessMove(currPosition, doubleForwardPosition, promotionPiece));
+            ChessPosition rightAttack = new ChessPosition(currentY + moveDirection, currentX + 1);
+            if (isBoarded(rightAttack) && board.getPiece(rightAttack) != null && teamColor != board.getTeamOnSquare(rightAttack)) {
+                moves.add(new ChessMove(currentPosition, rightAttack, promotionPiece));
             }
         }
 
