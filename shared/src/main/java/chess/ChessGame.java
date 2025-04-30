@@ -11,6 +11,7 @@ import java.util.Collection;
 public class ChessGame {
 
     private TeamColor activeTeamColor;
+    private ChessBoard gameBoard;
 
     public ChessGame() {
         this.activeTeamColor = TeamColor.WHITE;
@@ -107,6 +108,6 @@ public class ChessGame {
      * @return the chessboard
      */
     public ChessBoard getBoard() {
-        throw new RuntimeException("Not implemented");
+        return gameBoard;
     }
 }
