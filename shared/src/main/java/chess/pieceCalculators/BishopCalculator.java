@@ -15,14 +15,24 @@ public class BishopCalculator implements pieceMoveCalculator {
         int [][] potentialMoves = {{1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
 
         for (int[] jump : potentialMoves) {
-            int testRow = activePosition.getRow() + jump[1];
-            int testCol = activePosition.getColumn() + jump[0];
+            int step =0;
 
-            ChessPosition testPosition = new ChessPosition(testRow, testCol);
+            while(true) {
+                int testRow = activePosition.getRow() + jump[1] + step;
+                int testCol = activePosition.getColumn() + jump[0] + step;
 
-            if(isRealPosition(testPosition)){
-                moves.add(new ChessMove(activePosition, testPosition, null));
+                ChessPosition testPosition = new ChessPosition(testRow, testCol);
+
+                if(isRealPosition(testPosition) && ){
+                    moves.add(new ChessMove(activePosition, testPosition, null));
+                    step++;
+                } else {
+                    break;
+                }
+
             }
+
+
         }
         return moves;
     }

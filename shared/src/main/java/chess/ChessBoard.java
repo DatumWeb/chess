@@ -34,6 +34,15 @@ public class ChessBoard {
         return gameBoardGrid[position.getRow() - 1][position.getColumn() - 1];
     }
 
+    public ChessGame.TeamColor checkColorOnSquare (ChessPosition positionToCheck) {
+        ChessGame.TeamColor colorOnSquare = null;
+        if (getPiece(positionToCheck) == null) {
+            return null;
+        } else {
+            colorOnSquare = getPiece(positionToCheck).getTeamColor();
+        }
+        return colorOnSquare;
+    }
     /**
      * Sets the board to the default starting board
      * (How the game of chess normally starts)
