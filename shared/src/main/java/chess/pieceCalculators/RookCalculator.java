@@ -15,12 +15,12 @@ public class RookCalculator implements pieceMoveCalculator{
         int [][] potentialMoves = {{1,0}, {-1, 0}, {0, 1}, {0, -1}};
 
         for (int[] jump : potentialMoves) {
-            int step = 0;
+            int step = 1;
 
             while(true){
 
-                int testRow = activePosition.getRow() + jump[1] + step;
-                int testCol = activePosition.getColumn() + jump[0] + step;
+                int testRow = activePosition.getRow() + jump[1] * step;
+                int testCol = activePosition.getColumn() + jump[0] * step;
                 ChessPosition testPosition = new ChessPosition(testRow, testCol);
                 if (isRealPosition(testPosition)){
                     moves.add(new ChessMove(activePosition, testPosition, null));

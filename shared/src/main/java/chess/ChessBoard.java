@@ -1,5 +1,7 @@
 package chess;
 
+import java.util.Arrays;
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -34,11 +36,9 @@ public class ChessBoard {
         return gameBoardGrid[position.getRow() - 1][position.getColumn() - 1];
     }
 
-    public ChessGame.TeamColor checkColorOnSquare (ChessPosition positionToCheck) {
+    public ChessGame.TeamColor getColorOnSquare (ChessPosition positionToCheck) {
         ChessGame.TeamColor colorOnSquare = null;
-        if (getPiece(positionToCheck) == null) {
-            return null;
-        } else {
+        if (getPiece(positionToCheck) != null) {
             colorOnSquare = getPiece(positionToCheck).getTeamColor();
         }
         return colorOnSquare;
@@ -49,5 +49,22 @@ public class ChessBoard {
      */
     public void resetBoard() {
         throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessBoard that = (ChessBoard) o;
+        return Arrays.equals(gameBoardGrid, that.gameBoardGrid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(gameBoardGrid);
     }
 }
