@@ -20,8 +20,15 @@ public class KnightCalculator implements pieceMoveCalculator {
 
             ChessPosition testPosition = new ChessPosition(testRow, testCol);
 
-            if (isRealPosition(testPosition)) {
+            if (!isRealPosition(testPosition)) {
+               break;
+            }
+            if (gameBoard.getPiece(testPosition) == null) {
                 moves.add(new ChessMove(activePosition, testPosition, null));
+            } else if (gameBoard.getColorOnSquare(testPosition) != gameBoard.getColorOnSquare(activePosition)) {
+                moves.add(new ChessMove(activePosition, testPosition, null));
+            } else {
+                break;
             }
         }
         return moves;
