@@ -21,7 +21,11 @@ public class KingCalculator implements pieceMoveCalculator {
             ChessPosition testPosition = new ChessPosition(testRow, testCol);
 
             if (isRealPosition(testPosition)) {
-                moves.add(new ChessMove(activePosition, testPosition, null));
+                if (gameBoard.getPiece(testPosition) == null) {
+                    moves.add(new ChessMove(activePosition, testPosition, null));
+                } else if (gameBoard.getColorOnSquare(testPosition) != gameBoard.getColorOnSquare(activePosition)) {
+                    moves.add(new ChessMove(activePosition, testPosition, null));
+                }
             }
 
         }
