@@ -1,9 +1,6 @@
 package chess.pieceCalculators;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPosition;
+import chess.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -34,19 +31,21 @@ public class PawnCalculator implements pieceMoveCalculator {
         int testCol = activePosition.getColumn();
 
         ChessPosition testPositionOneStep = new ChessPosition(testRow, testCol);
-        ChessPosition testPositionTwoStep = new ChessPosition(testRow * 2, testCol);
+        ChessPosition testPositionTwoStep = new ChessPosition(testRow + stepDirection, testCol);
 
 
         if (isStartingTurn(activePosition, activeColor)){
             if (gameBoard.getPiece(testPositionOneStep) == null && isRealPosition(testPositionOneStep)){
                 moves.add(new ChessMove(activePosition, testPositionOneStep, null));
 
-                if(gameBoard.getPiece(testPositionTwoStep) == null && isRealPosition(testPositionOneStep)){
+                if(gameBoard.getPiece(testPositionTwoStep) == null && isRealPosition(testPositionTwoStep)){
                     moves.add(new ChessMove(activePosition, testPositionTwoStep, null));
                 }
             }
         } else {
-            if (gameBoard.getPiece(testPositionOneStep) == null && isRealPosition(testPositionOneStep)) {
+            if (isPromotionRow(testPositionOneStep)){
+                addAllPromotions(moves, activePosition, testPositionOneStep);
+            } else if (gameBoard.getPiece(testPositionOneStep) == null && isRealPosition(testPositionOneStep)) {
                 moves.add(new ChessMove(activePosition, testPositionOneStep, null));
             }
         }
@@ -61,12 +60,27 @@ public class PawnCalculator implements pieceMoveCalculator {
         ChessPosition testLeft = new ChessPosition(testRow, testColLeft);
         ChessPosition testRight = new ChessPosition(testRow, testColRight);
 
-        if (gameBoard.getColorOnSquare(testRight) != activeColor && isRealPosition(testRight) && gameBoard.getPiece(testRight) != null){
-            moves.add(new ChessMove(activePosition, testRight, null));
+        if (isRealPosition(testLeft)) {
+            if (gameBoard.getColorOnSquare(testLeft) != activeColor && gameBoard.getPiece(testLeft) != null) {
+                if (isPromotionRow(testLeft)){
+                    addAllPromotions(moves, activePosition, testLeft);
+                } else {
+                    moves.add(new ChessMove(activePosition, testLeft, null));
+                }
+            }
         }
-        if (gameBoard.getColorOnSquare(testLeft) != activeColor && isRealPosition(testLeft) && gameBoard.getPiece(testLeft) != null) {
-            moves.add(new ChessMove(activePosition, testLeft, null));
+
+        if(isRealPosition(testRight)){
+            if (gameBoard.getColorOnSquare(testRight) != activeColor && gameBoard.getPiece(testRight) != null){
+                if (isPromotionRow(testRight)){
+                    addAllPromotions(moves, activePosition, testRight);
+                } else {
+                    moves.add(new ChessMove(activePosition, testRight, null));
+                }
+            }
         }
+
+
     }
 
     public boolean isPromotionRow (ChessPosition testPosition) {
@@ -74,6 +88,14 @@ public class PawnCalculator implements pieceMoveCalculator {
     }
 
     public boolean isStartingTurn (ChessPosition activePosition, ChessGame.TeamColor activeColor) {
-        return (activePosition.getColumn() == 2 && activeColor == ChessGame.TeamColor.WHITE) || (activePosition.getColumn() == 7 && activeColor == ChessGame.TeamColor.BLACK);
+        return (activePosition.getRow() == 2 && activeColor == ChessGame.TeamColor.WHITE) || (activePosition.getRow() == 7 && activeColor == ChessGame.TeamColor.BLACK);
+    }
+
+    public void addAllPromotions (Set<ChessMove> moves, ChessPosition activePosition, ChessPosition testPosition) {
+        moves.add(new ChessMove(activePosition, testPosition, ChessPiece.PieceType.BISHOP));
+        moves.add(new ChessMove(activePosition, testPosition, ChessPiece.PieceType.KNIGHT));
+        moves.add(new ChessMove(activePosition, testPosition, ChessPiece.PieceType.QUEEN));
+        moves.add(new ChessMove(activePosition, testPosition, ChessPiece.PieceType.ROOK));
+        // maybe a pawn
     }
 }
