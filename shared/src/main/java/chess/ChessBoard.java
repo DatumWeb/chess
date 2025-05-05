@@ -48,8 +48,24 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
-    }
+        gameBoardGrid = new ChessPiece[8][8];
+
+        for(int i = 0; i < 8; i ++){
+            gameBoardGrid[1][i] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
+            gameBoardGrid[6][i] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
+        }
+
+        ChessPiece.PieceType [] placeOrder =  {ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.QUEEN,
+                ChessPiece.PieceType.KING, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.ROOK};
+
+        for(int i = 0; i < 8; i ++){
+            gameBoardGrid[0][i] = new ChessPiece(ChessGame.TeamColor.WHITE, placeOrder[i]);
+            gameBoardGrid[7][i] = new ChessPiece(ChessGame.TeamColor.BLACK, placeOrder[i]);
+        }
+
+        }
+
+
 
     @Override
     public boolean equals(Object o) {
@@ -60,11 +76,11 @@ public class ChessBoard {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        return Arrays.equals(gameBoardGrid, that.gameBoardGrid);
+        return Arrays.deepEquals(gameBoardGrid, that.gameBoardGrid);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(gameBoardGrid);
+        return Arrays.deepHashCode(gameBoardGrid);
     }
 }
