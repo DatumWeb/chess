@@ -81,6 +81,6 @@ public class ChessBoard {
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(gameBoardGrid);
+        return Arrays.deepHashCode(gameBoardGrid); //done
     }
 }
