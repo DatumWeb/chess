@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 /**
@@ -79,7 +80,26 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece startPiece = gameBoard.getPiece(startPosition);
+        if (startPiece == null) {
+            return null;
+        }
+
+        Collection<ChessMove> movesToTry = startPiece.pieceMoves(gameBoard, startPosition);
+        Collection<ChessMove> validMoves = new HashSet<>();
+
+        for (ChessMove move : movesToTry) {
+            ChessPiece tempPiece = gameBoard.getPiece(move.getEndPosition());
+            simulateMove(startPosition, move);
+
+            if (!isInCheck(startPiece.getTeamColor())) {
+                validMoves.add(move);
+            }
+
+            undoMove(startPosition, move, tempPiece);
+        }
+
+        return validMoves;
     }
 
     private void switchTurn() {
@@ -93,7 +113,20 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
+
+        if (validMoves == null || !validMoves.contains(move) || (gameBoard.getColorOnSquare(move.getStartPosition()) != getTeamTurn())) {
+            throw new InvalidMoveException("Invalid move");
+        }
+
+        ChessPiece pieceToMove = gameBoard.getPiece(move.getStartPosition());
+        if (move.getPromotionPiece() != null) {
+            pieceToMove = new ChessPiece(pieceToMove.getTeamColor(), move.getPromotionPiece());
+        }
+
+        gameBoard.addPiece(move.getStartPosition(), null);
+        gameBoard.addPiece(move.getEndPosition(), pieceToMove);
+        switchTurn();
     }
 
     /**
