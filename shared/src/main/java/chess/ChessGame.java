@@ -59,6 +59,18 @@ public class ChessGame {
         BLACK
     }
 
+    private void simulateMove(ChessPosition startPosition, ChessMove move) {
+        ChessPiece piece = gameBoard.getPiece(startPosition);
+        gameBoard.addPiece(startPosition, null);
+        gameBoard.addPiece(move.getEndPosition(), piece);
+    }
+
+    private void undoMove(ChessPosition startPosistion, ChessMove move, ChessPiece capturedPiece) {
+        ChessPiece piece = gameBoard.getPiece(move.getEndPosition());
+        gameBoard.addPiece(move.getEndPosition(), capturedPiece);
+        gameBoard.addPiece(startPosistion, piece);
+    }
+
     /**
      * Gets a valid moves for a piece at the given location
      *
@@ -68,6 +80,10 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         throw new RuntimeException("Not implemented");
+    }
+
+    private void switchTurn() {
+        activeTeamColor = (activeTeamColor == TeamColor.WHITE) ? TeamColor.BLACK: TeamColor.WHITE;
     }
 
     /**
