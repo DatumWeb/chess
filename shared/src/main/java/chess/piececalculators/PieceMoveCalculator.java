@@ -1,9 +1,9 @@
-package chess.pieceCalculators;
+package chess.piececalculators;
 
 import chess.*;
 
 import java.util.Set;
-public interface pieceMoveCalculator {
+public interface PieceMoveCalculator {
 
     Set<ChessMove> getMoves(ChessBoard gameBoard, ChessPosition activePosition);
 

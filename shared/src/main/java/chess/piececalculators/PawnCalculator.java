@@ -1,11 +1,11 @@
-package chess.pieceCalculators;
+package chess.piececalculators;
 
 import chess.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class PawnCalculator implements pieceMoveCalculator {
+public class PawnCalculator implements PieceMoveCalculator {
     public Set<ChessMove> getMoves(ChessBoard gameBoard, ChessPosition activePosition){
         Set<ChessMove> moves = new HashSet<>();
 
