@@ -23,6 +23,7 @@ public class PawnCalculator implements pieceMoveCalculator {
 
         getAttackMoves (gameBoard, moves, activePosition, stepDirection, activeColor);
 
+
         return moves;
     }
 
