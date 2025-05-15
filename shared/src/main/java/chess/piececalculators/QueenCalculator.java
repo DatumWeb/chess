@@ -1,12 +1,5 @@
 package chess.piececalculators;
 
-import chess.ChessBoard;
-import chess.ChessMove;
-import chess.ChessPosition;
-
-import java.util.HashSet;
-import java.util.Set;
-
 public class QueenCalculator extends SteppingMoveCalculator {
     @Override
     protected int[][] getPotentialMoves() {
