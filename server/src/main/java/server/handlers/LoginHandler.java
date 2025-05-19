@@ -26,7 +26,7 @@ public class LoginHandler implements Route {
             String password = requestBody.get("password");
 
             if (username == null || password == null) {
-                res.status(401);
+                res.status(400);
                 return gson.toJson(Map.of("message", "Error: unauthorized"));
             }
 
