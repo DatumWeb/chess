@@ -1,4 +1,36 @@
 package dataaccess;
 
-public class MemoryUserDAO {
+import model.UserData;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class MemoryUserDAO implements UserDAO {
+    private final Map<String, UserData> userDataMap = new HashMap<>();
+
+    @Override
+    public UserData getUser(String username) throws DataAccessException {
+        return userDataMap.get(username);
+    }
+
+    @Override
+    public void createUser(UserData userData) throws DataAccessException {
+        if (userDataMap.containsKey(userData.username())) {
+            throw new DataAccessException("User already exists");
+        }
+        userDataMap.put(userData.username(), userData);
+    }
+
+    @Override
+    public void deleteUser(String username) throws DataAccessException {
+        if (!userDataMap.containsKey(username)) {
+            throw new DataAccessException("User does not exist");
+        }
+        userDataMap.remove(username);
+    }
+
+    @Override
+    public void clearUser() {
+        userDataMap.clear();
+    }
 }
