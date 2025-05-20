@@ -29,7 +29,6 @@ public class ClearServiceTest {
         authDAO = new MemoryAuthDAO();
         clearService = new ClearService(userDAO, gameDAO, authDAO);
 
-        //a base set of single values
         userDAO.createUser(new UserData("MrTester", "123PASSWOrD", "fakeemail@gmail.com"));
         gameDAO.createGame(new GameData(44, "WhiteTester", "BlackTester", "gameNameTest", null));
         System.out.println("Game stored: " + gameDAO.getGame(44));
