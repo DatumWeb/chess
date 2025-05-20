@@ -21,13 +21,6 @@ public class MemoryUserDAO implements UserDAO {
         userDataMap.put(userData.username(), userData);
     }
 
-    @Override
-    public void deleteUser(String username) throws DataAccessException {
-        if (!userDataMap.containsKey(username)) {
-            throw new DataAccessException("User does not exist");
-        }
-        userDataMap.remove(username);
-    }
 
     @Override
     public void clearUser() {
