@@ -55,8 +55,10 @@ public class ChessBoard {
             gameBoardGrid[6][i] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
         }
 
-        ChessPiece.PieceType [] placeOrder =  {ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.QUEEN,
-                ChessPiece.PieceType.KING, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.ROOK};
+        ChessPiece.PieceType [] placeOrder =  {ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT,
+                ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.QUEEN,
+                ChessPiece.PieceType.KING, ChessPiece.PieceType.BISHOP,
+                ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.ROOK};
 
         for(int i = 0; i < 8; i ++){
             gameBoardGrid[0][i] = new ChessPiece(ChessGame.TeamColor.WHITE, placeOrder[i]);

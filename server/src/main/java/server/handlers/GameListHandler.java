@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 public class GameListHandler implements Route {
     private final GameListService gameListService;
     private final Gson gson = new Gson();
-    private static final Logger logger = Logger.getLogger(GameListHandler.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(GameListHandler.class.getName());
 
     public GameListHandler(GameListService gameListService) {
         this.gameListService = gameListService;
@@ -25,7 +25,7 @@ public class GameListHandler implements Route {
     public Object handle(Request request, Response response) {
         try {
             String authToken = request.headers("authorization");
-            logger.info("Auth Token: " + authToken);
+            LOGGER.info("Auth Token: " + authToken);
 
             List<GameData> games = gameListService.getGameList(authToken);
 
@@ -33,7 +33,7 @@ public class GameListHandler implements Route {
             return gson.toJson(Map.of("games", games));
 
         } catch (DataAccessException exception) {
-            logger.severe("Data Access Error: " + exception.getMessage());
+            LOGGER.severe("Data Access Error: " + exception.getMessage());
             if (exception.getMessage().equals("Error: unauthorized")) {
                 response.status(401);
                 return gson.toJson(Map.of("message", "Error: unauthorized"));
@@ -42,7 +42,7 @@ public class GameListHandler implements Route {
             response.status(500);
             return gson.toJson(Map.of("message", "Error: " + exception.getMessage()));
         } catch (Exception exception) {
-            logger.severe("General Error: " + exception.getMessage());
+            LOGGER.severe("General Error: " + exception.getMessage());
             response.status(500);
             return gson.toJson(Map.of("message", "Error: " + exception.getMessage()));
         }

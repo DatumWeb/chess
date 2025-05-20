@@ -27,7 +27,8 @@ public class PawnCalculator implements PieceMoveCalculator {
         return moves;
     }
 
-    public void getForwardMoves (ChessBoard gameBoard, Set<ChessMove> moves, ChessPosition activePosition, int stepDirection, ChessGame.TeamColor activeColor) {
+    public void getForwardMoves (ChessBoard gameBoard, Set<ChessMove> moves, ChessPosition activePosition,
+                                 int stepDirection, ChessGame.TeamColor activeColor) {
         int testRow = activePosition.getRow() + stepDirection;
         int testCol = activePosition.getColumn();
 
@@ -53,7 +54,8 @@ public class PawnCalculator implements PieceMoveCalculator {
 
     }
 
-    public void getAttackMoves (ChessBoard gameBoard, Set<ChessMove> moves, ChessPosition activePosition, int stepDirection, ChessGame.TeamColor activeColor) {
+    public void getAttackMoves (ChessBoard gameBoard, Set<ChessMove> moves, ChessPosition activePosition,
+                                int stepDirection, ChessGame.TeamColor activeColor) {
         int testRow = activePosition.getRow() + stepDirection;
         int testColRight = activePosition.getColumn() + 1;
         int testColLeft = activePosition.getColumn() - 1;
@@ -89,7 +91,8 @@ public class PawnCalculator implements PieceMoveCalculator {
     }
 
     public boolean isStartingTurn (ChessPosition activePosition, ChessGame.TeamColor activeColor) {
-        return (activePosition.getRow() == 2 && activeColor == ChessGame.TeamColor.WHITE) || (activePosition.getRow() == 7 && activeColor == ChessGame.TeamColor.BLACK);
+        return (activePosition.getRow() == 2 && activeColor == ChessGame.TeamColor.WHITE) ||
+                (activePosition.getRow() == 7 && activeColor == ChessGame.TeamColor.BLACK);
     }
 
     public void addAllPromotions (Set<ChessMove> moves, ChessPosition activePosition, ChessPosition testPosition) {
