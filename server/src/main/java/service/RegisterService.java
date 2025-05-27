@@ -5,6 +5,7 @@ import model.AuthData;
 import model.UserData;
 
 import java.util.UUID;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class RegisterService {
     private final UserDAO userDAO;
@@ -30,7 +31,9 @@ public class RegisterService {
             throw new DataAccessException("Error: already taken");
         }
 
-        UserData newUser = new UserData(username, password, email);
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+        UserData newUser = new UserData(username, hashedPassword, email);
         userDAO.createUser(newUser);
 
         String authToken = generateToken();
