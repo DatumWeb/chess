@@ -4,6 +4,7 @@ import dataaccess.*;
 import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.*;
+import org.mindrot.jbcrypt.BCrypt;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,7 +37,7 @@ class RegisterServiceTest {
         UserData storedUser = userDAO.getUser(username);
         assertNotNull(storedUser, "User should be stored in the DAO");
         assertEquals(username, storedUser.username(), "Stored username should match");
-        assertEquals(password, storedUser.password(), "Stored password should match");
+        assertTrue(BCrypt.checkpw("testPassword", storedUser.password()), "Stored password should validate against original password");
         assertEquals(email, storedUser.email(), "Stored email should match");
 
         AuthData storedAuth = authDAO.getAuthToken(authData.authToken());
