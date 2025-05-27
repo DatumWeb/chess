@@ -1,12 +1,9 @@
 package server;
 
-
 import server.handlers.*;
 import service.*;
 import spark.*;
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryGameDAO;
-import dataaccess.MemoryUserDAO;
+import dataaccess.*;
 
 public class Server {
     private ClearService clearService;
@@ -17,36 +14,42 @@ public class Server {
     private JoinGameService joinGameService;
     private GameListService gameListService;
 
-
     public int run(int desiredPort) {
         Spark.port(desiredPort);
 
         Spark.staticFiles.location("web");
 
-        // Register your endpoints and handle exceptions here.
-        var userDAO = new MemoryUserDAO();
-        var gameDAO = new MemoryGameDAO();
-        var authDAO = new MemoryAuthDAO();
+        try {
+            DAOFactory.initializeDatabase();
 
-        clearService = new ClearService(userDAO, gameDAO, authDAO);
-        registerService = new RegisterService(userDAO, authDAO);
-        loginService = new LoginService(userDAO, authDAO);
-        logoutService = new LogoutService(authDAO);
-        gameCreateService = new GameCreateService(gameDAO, authDAO);
-        joinGameService = new JoinGameService(gameDAO, authDAO);
-        gameListService = new GameListService(gameDAO, authDAO);
+            var userDAO = DAOFactory.createUserDAO();
+            var gameDAO = DAOFactory.createGameDAO();
+            var authDAO = DAOFactory.createAuthDAO();
 
+            clearService = new ClearService(userDAO, gameDAO, authDAO);
+            registerService = new RegisterService(userDAO, authDAO);
+            loginService = new LoginService(userDAO, authDAO);
+            logoutService = new LogoutService(authDAO);
+            gameCreateService = new GameCreateService(gameDAO, authDAO);
+            joinGameService = new JoinGameService(gameDAO, authDAO);
+            gameListService = new GameListService(gameDAO, authDAO);
 
-        Spark.delete("/db", new ClearHandler(clearService));
-        Spark.delete("/session", new LogoutHandler(logoutService));
-        Spark.post("/user", new RegisterHandler(registerService));
-        Spark.post("/session", new LoginHandler(loginService));
-        Spark.post("/game", new GameCreateHandler(gameCreateService));
-        Spark.put("/game", new JoinGameHandler(joinGameService));
-        Spark.get("/game", new GameListHandler(gameListService));
+            Spark.delete("/db", new ClearHandler(clearService));
+            Spark.delete("/session", new LogoutHandler(logoutService));
+            Spark.post("/user", new RegisterHandler(registerService));
+            Spark.post("/session", new LoginHandler(loginService));
+            Spark.post("/game", new GameCreateHandler(gameCreateService));
+            Spark.put("/game", new JoinGameHandler(joinGameService));
+            Spark.get("/game", new GameListHandler(gameListService));
 
-        Spark.awaitInitialization();
-        return Spark.port();
+            Spark.awaitInitialization();
+            return Spark.port();
+
+        } catch (DataAccessException e) {
+            System.err.println("Error initializing server: " + e.getMessage());
+            Spark.stop();
+            return -1;
+        }
     }
 
     public void stop() {
