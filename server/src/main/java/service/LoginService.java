@@ -19,14 +19,16 @@ public class LoginService {
     }
 
     public AuthData login(String username, String password) throws DataAccessException {
+
+        if (username == null || password == null || username.isBlank() || password.isBlank()) {
+            throw new DataAccessException("Error: username or password empty");
+        }
+
         UserData user = userDAO.getUser(username);
-        if (user == null) {
+        if (user == null || !BCrypt.checkpw(password, user.password())) {
             throw new DataAccessException("Error: unauthorized");
         }
 
-        if (!user.password().equals(password)) {
-            throw new DataAccessException("Error: unauthorized");
-        }
 
         AuthData authData = new AuthData(generateToken(), username);
         authDao.createAuthToken(authData);
