@@ -1,5 +1,6 @@
 package service;
 
+import dataaccess.DatabaseServiceException;
 import dataaccess.GameDAO;
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
@@ -17,7 +18,7 @@ public class GameListService {
         this.authDAO = authDAO;
     }
 
-    public List<GameData> getGameList(String authToken) throws DataAccessException {
+    public List<GameData> getGameList(String authToken) throws DataAccessException, DatabaseServiceException {
         AuthData authData = authDAO.getAuthToken(authToken);
         if (authData == null) {
             throw new DataAccessException("Error: unauthorized");

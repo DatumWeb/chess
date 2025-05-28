@@ -11,7 +11,7 @@ public class DAOFactory {
 
     private static final DAOType DAO_TYPE = DAOType.SQL;
 
-    public static UserDAO createUserDAO() throws DataAccessException {
+    public static UserDAO createUserDAO() throws DataAccessException, DatabaseServiceException {
         switch (DAO_TYPE) {
             case MEMORY:
                 return new MemoryUserDAO();
@@ -22,7 +22,7 @@ public class DAOFactory {
         }
     }
 
-    public static GameDAO createGameDAO() throws DataAccessException {
+    public static GameDAO createGameDAO() throws DataAccessException, DatabaseServiceException {
         switch (DAO_TYPE) {
             case MEMORY:
                 return new MemoryGameDAO();
@@ -33,7 +33,7 @@ public class DAOFactory {
         }
     }
 
-    public static AuthDAO createAuthDAO() throws DataAccessException {
+    public static AuthDAO createAuthDAO() throws DataAccessException, DatabaseServiceException {
         switch (DAO_TYPE) {
             case MEMORY:
                 return new MemoryAuthDAO();

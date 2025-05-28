@@ -49,6 +49,8 @@ public class Server {
             System.err.println("Error initializing server: " + e.getMessage());
             Spark.stop();
             return -1;
+        } catch (DatabaseServiceException e) {
+            throw new RuntimeException(e);
         }
     }
 

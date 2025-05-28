@@ -17,7 +17,7 @@ class GameListServiceTest {
     private String invalidAuthToken;
 
     @BeforeEach
-    void setUp() throws DataAccessException {
+    void setUp() throws DataAccessException, DatabaseServiceException {
         gameDAO = new MemoryGameDAO();
         authDAO = new MemoryAuthDAO();
         gameListService = new GameListService(gameDAO, authDAO);
@@ -34,7 +34,7 @@ class GameListServiceTest {
 
     @Test
     @DisplayName("Successfully get list of games")
-    void testGetGameListSuccess() throws DataAccessException {
+    void testGetGameListSuccess() throws DataAccessException, DatabaseServiceException {
         List<GameData> games = gameListService.getGameList(validAuthToken);
 
         assertNotNull(games, "Games list should not be null");

@@ -5,14 +5,14 @@ import model.GameData;
 import java.util.List;
 
 public interface GameDAO {
-    List<GameData> getAllGames() throws DataAccessException;
+    List<GameData> getAllGames() throws DataAccessException, DatabaseServiceException;
 
-    GameData getGame(int gameId) throws DataAccessException;
+    GameData getGame(int gameId) throws DataAccessException, DatabaseServiceException;
 
-    void createGame(GameData gameData) throws DataAccessException;
+    void createGame(GameData gameData) throws DataAccessException, DatabaseServiceException;
 
-    void updateGame(GameData gameData) throws DataAccessException;
+    void updateGame(GameData gameData) throws DataAccessException, DatabaseServiceException;
 
 
-    void clearGame() throws DataAccessException;
+    void clearGame() throws DataAccessException, DatabaseServiceException;
 }

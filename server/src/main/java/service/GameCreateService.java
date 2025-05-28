@@ -1,6 +1,7 @@
 package service;
 
 import chess.ChessBoard;
+import dataaccess.DatabaseServiceException;
 import dataaccess.GameDAO;
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
@@ -19,7 +20,7 @@ public class GameCreateService {
         this.authDAO = authDAO;
     }
 
-    public GameData createGame(String authToken, String gameName) throws DataAccessException {
+    public GameData createGame(String authToken, String gameName) throws DataAccessException, DatabaseServiceException {
         AuthData authData = authDAO.getAuthToken(authToken);
         if (authData == null) {
             throw new DataAccessException("Error: unauthorized");

@@ -2,6 +2,7 @@ package server.handlers;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
+import dataaccess.DatabaseServiceException;
 import service.ClearService;
 import spark.Request;
 import spark.Response;
@@ -24,6 +25,8 @@ public class ClearHandler implements Route {
         } catch (DataAccessException exception) {
             response.status(500);
             return "{\"message\": \"Error: " + exception.getMessage() + "\"}";
+        } catch (DatabaseServiceException e) {
+            throw new RuntimeException(e);
         }
 
     }

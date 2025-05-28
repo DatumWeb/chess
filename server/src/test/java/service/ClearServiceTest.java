@@ -1,9 +1,6 @@
 package service;
 
-import dataaccess.DataAccessException;
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryGameDAO;
-import dataaccess.MemoryUserDAO;
+import dataaccess.*;
 
 import model.AuthData;
 import model.GameData;
@@ -37,7 +34,7 @@ public class ClearServiceTest {
     }
 
     @Test
-    void clearOneSet() throws DataAccessException {
+    void clearOneSet() throws DataAccessException, DatabaseServiceException {
         assertNotNull(userDAO.getUser("MrTester"), "User should exist before clearing");
         assertNotNull(gameDAO.getGame(44), "Game should exist before clearing");
         assertNotNull(authDAO.getAuthToken("testAuthToken"), "AuthToken should exist before clearing");
@@ -50,7 +47,7 @@ public class ClearServiceTest {
     }
 
     @Test
-    void clearMultipleSets() throws DataAccessException {
+    void clearMultipleSets() throws DataAccessException, DatabaseServiceException {
         userDAO.createUser(new UserData("User1", "Pass1", "email1@gmail.com"));
         userDAO.createUser(new UserData("User2", "Pass2", "email2@gmail.com"));
         gameDAO.createGame(new GameData(101, "White1", "Black1", "Game1", null));

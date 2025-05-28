@@ -16,7 +16,7 @@ public class RegisterService {
         this.authDAO = authDAO;
     }
 
-    public AuthData register(String username, String password, String email) throws DataAccessException {
+    public AuthData register(String username, String password, String email) throws DataAccessException, DatabaseServiceException {
         if (username == null) {
             throw new DataAccessException("Username is null");
         }

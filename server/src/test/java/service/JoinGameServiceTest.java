@@ -18,7 +18,7 @@ class JoinGameServiceTest {
     private final String username = "testUser";
 
     @BeforeEach
-    void setUp() throws DataAccessException {
+    void setUp() throws DataAccessException, DatabaseServiceException {
         gameDAO = new MemoryGameDAO();
         authDAO = new MemoryAuthDAO();
         joinGameService = new JoinGameService(gameDAO, authDAO);
@@ -35,7 +35,7 @@ class JoinGameServiceTest {
 
     @Test
     @DisplayName("Successfully join game as WHITE")
-    void testJoinGameAsWhiteSuccess() throws DataAccessException {
+    void testJoinGameAsWhiteSuccess() throws DataAccessException, DatabaseServiceException {
         joinGameService.joinGame(validAuthToken, validGameId, "WHITE");
 
         GameData game = gameDAO.getGame(validGameId);
@@ -46,7 +46,7 @@ class JoinGameServiceTest {
 
     @Test
     @DisplayName("Successfully join game as BLACK")
-    void testJoinGameAsBlackSuccess() throws DataAccessException {
+    void testJoinGameAsBlackSuccess() throws DataAccessException, DatabaseServiceException {
         joinGameService.joinGame(validAuthToken, validGameId, "BLACK");
 
         GameData game = gameDAO.getGame(validGameId);

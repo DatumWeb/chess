@@ -16,7 +16,7 @@ class GameCreateServiceTest {
     private String gameName = "TestGame";
 
     @BeforeEach
-    void setUp() throws DataAccessException {
+    void setUp() throws DataAccessException, DatabaseServiceException {
         gameDAO = new MemoryGameDAO();
         authDAO = new MemoryAuthDAO();
         gameCreateService = new GameCreateService(gameDAO, authDAO);
@@ -29,7 +29,7 @@ class GameCreateServiceTest {
 
     @Test
     @DisplayName("Successfully create a game")
-    void testCreateGameSuccess() throws DataAccessException {
+    void testCreateGameSuccess() throws DataAccessException, DatabaseServiceException {
         GameData createdGame = gameCreateService.createGame(validAuthToken, gameName);
 
         assertNotNull(createdGame, "Created game should not be null.");

@@ -4,6 +4,7 @@ import dataaccess.UserDAO;
 import dataaccess.GameDAO;
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
+import dataaccess.DatabaseServiceException;
 
 public class ClearService {
     private final UserDAO userDAO;
@@ -16,7 +17,7 @@ public class ClearService {
         this.authDAO = authDAO;
     }
 
-    public void clear() throws DataAccessException {
+    public void clear() throws DataAccessException, DatabaseServiceException {
         userDAO.clearUser();
         gameDAO.clearGame();
         authDAO.clearAuth();

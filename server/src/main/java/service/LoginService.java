@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.DataAccessException;
+import dataaccess.DatabaseServiceException;
 import dataaccess.UserDAO;
 import dataaccess.AuthDAO;
 import model.AuthData;
@@ -18,7 +19,7 @@ public class LoginService {
         this.authDao = authDAO;
     }
 
-    public AuthData login(String username, String password) throws DataAccessException {
+    public AuthData login(String username, String password) throws DataAccessException, DatabaseServiceException {
 
         if (username == null || password == null || username.isBlank() || password.isBlank()) {
             throw new DataAccessException("Error: username or password empty");

@@ -17,7 +17,7 @@ class RegisterServiceTest {
     private final String email = "test@example.com";
 
     @BeforeEach
-    void setUp() throws DataAccessException {
+    void setUp() throws DataAccessException, DatabaseServiceException {
         userDAO = new MemoryUserDAO();
         authDAO = new MemoryAuthDAO();
         registerService = new RegisterService(userDAO, authDAO);
@@ -27,7 +27,7 @@ class RegisterServiceTest {
 
     @Test
     @DisplayName("Successfully register new user")
-    void testRegisterSuccess() throws DataAccessException {
+    void testRegisterSuccess() throws DataAccessException, DatabaseServiceException {
         AuthData authData = registerService.register(username, password, email);
 
         assertNotNull(authData, "Auth data should not be null");

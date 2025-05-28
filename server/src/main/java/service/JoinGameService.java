@@ -1,5 +1,6 @@
 package service;
 
+import dataaccess.DatabaseServiceException;
 import dataaccess.GameDAO;
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
@@ -15,7 +16,7 @@ public class JoinGameService {
         this.authDAO = authDAO;
     }
 
-    public void joinGame(String authToken, int gameID, String playerColor) throws DataAccessException {
+    public void joinGame(String authToken, int gameID, String playerColor) throws DataAccessException, DatabaseServiceException {
         if (gameID <= 0) {
             throw new DataAccessException("Error: bad request");
         }

@@ -2,6 +2,7 @@ package service;
 
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
+import dataaccess.DatabaseServiceException;
 
 public class LogoutService {
     private final AuthDAO authDAO;
@@ -19,6 +20,8 @@ public class LogoutService {
             authDAO.deleteAuthToken(authToken);
         } catch (DataAccessException exception) {
             throw new DataAccessException("Error: unauthorized");
+        } catch (DatabaseServiceException e) {
+            throw new RuntimeException(e);
         }
 
         return true;

@@ -14,7 +14,7 @@ class LogoutServiceTest {
     private final String username = "testUser";
 
     @BeforeEach
-    void setUp() throws DataAccessException {
+    void setUp() throws DataAccessException, DatabaseServiceException {
         authDAO = new MemoryAuthDAO();
         logoutService = new LogoutService(authDAO);
 
@@ -26,7 +26,7 @@ class LogoutServiceTest {
 
     @Test
     @DisplayName("Successfully logout with valid auth token")
-    void testLogoutSuccess() throws DataAccessException {
+    void testLogoutSuccess() throws DataAccessException, DatabaseServiceException {
         assertNotNull(authDAO.getAuthToken(validAuthToken), "Auth token should exist before logout");
 
         boolean result = logoutService.logout(validAuthToken);

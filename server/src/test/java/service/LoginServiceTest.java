@@ -16,7 +16,7 @@ class LoginServiceTest {
     private final String email = "test@example.com";
 
     @BeforeEach
-    void setUp() throws DataAccessException {
+    void setUp() throws DataAccessException, DatabaseServiceException {
         userDAO = new MemoryUserDAO();
         authDAO = new MemoryAuthDAO();
         loginService = new LoginService(userDAO, authDAO);
@@ -26,7 +26,7 @@ class LoginServiceTest {
 
     @Test
     @DisplayName("Successfully login with valid credentials")
-    void testLoginSuccess() throws DataAccessException {
+    void testLoginSuccess() throws DataAccessException, DatabaseServiceException {
         AuthData authData = loginService.login(username, password);
 
         assertNotNull(authData, "Auth data should not be null");
