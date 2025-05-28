@@ -11,17 +11,20 @@ public class LogoutService {
         this.authDAO = authDAO;
     }
 
-    public boolean logout(String authToken) throws DataAccessException {
+    public boolean logout(String authToken) throws DataAccessException, DatabaseServiceException {
         if (authToken == null) {
             throw new DataAccessException("Auth token is missing.");
         }
 
         try {
             authDAO.deleteAuthToken(authToken);
-        } catch (DataAccessException exception) {
-            throw new DataAccessException("Error: unauthorized");
         } catch (DatabaseServiceException e) {
-            throw new RuntimeException(e);
+            throw new DatabaseServiceException("Database failure during logout.");
+        } catch (DataAccessException exception) {
+            if (exception.getMessage() != null && exception.getMessage().toLowerCase().contains("failed to get connection")) {
+                throw new DatabaseServiceException("Database failure during logout.");
+            }
+            throw new DataAccessException("Error: unauthorized");
         }
 
         return true;

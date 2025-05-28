@@ -8,6 +8,8 @@ import spark.Request;
 import spark.Response;
 import spark.Route;
 
+import java.util.Map;
+
 public class ClearHandler implements Route {
     private final ClearService clearService;
     private final Gson gson = new Gson();
@@ -22,20 +24,12 @@ public class ClearHandler implements Route {
             clearService.clear();
             response.status(200);
             return "{}";
-        } catch (DataAccessException exception) {
+        } catch (DataAccessException | DatabaseServiceException exception) {
             response.status(500);
-            return "{\"message\": \"Error: " + exception.getMessage() + "\"}";
-        } catch (DatabaseServiceException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    private static class ClearResponse {
-        private final String message;
-
-        public ClearResponse(String message) {
-            this.message = message;
+            return gson.toJson(Map.of("message", "Error: " + exception.getMessage()));
+        }  catch (Exception exception) {
+            response.status(500);
+            return gson.toJson(Map.of("message", "Error: Internal Server Error"));
         }
     }
 }

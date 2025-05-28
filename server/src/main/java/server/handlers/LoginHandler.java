@@ -7,6 +7,7 @@ import spark.Request;
 import spark.Response;
 import spark.Route;
 import dataaccess.DataAccessException;
+import dataaccess.DatabaseServiceException;
 
 import java.util.Map;
 
@@ -19,29 +20,18 @@ public class LoginHandler implements Route {
     }
 
     @Override
-    public Object handle(Request req, Response res) {
-        try {
-            Map<String, String> requestBody = gson.fromJson(req.body(), Map.class);
-            String username = requestBody.get("username");
-            String password = requestBody.get("password");
+    public Object handle(Request req, Response res) throws DataAccessException, DatabaseServiceException {
+        Map<String, String> requestBody = gson.fromJson(req.body(), Map.class);
+        String username = requestBody.get("username");
+        String password = requestBody.get("password");
 
-            if (username == null || password == null) {
-                res.status(400);
-                return gson.toJson(Map.of("message", "Error: unauthorized"));
-            }
-
-            AuthData authData = loginService.login(username, password);
-
-            res.status(200);
-            return gson.toJson(Map.of("username", authData.username(), "authToken", authData.authToken()));
-
-        } catch (DataAccessException exception) {
-            res.status(401);
-            return gson.toJson(Map.of("message", "Error: unauthorized"));
-
-        } catch (Exception exception) {
-            res.status(500);
-            return gson.toJson(Map.of("message", "Error: Internal Server Error"));
+        if (username == null || password == null) {
+            throw new DataAccessException("Error: bad request");
         }
+
+        AuthData authData = loginService.login(username, password);
+
+        res.status(200);
+        return gson.toJson(Map.of("username", authData.username(), "authToken", authData.authToken()));
     }
 }
