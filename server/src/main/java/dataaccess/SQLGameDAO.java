@@ -15,22 +15,8 @@ import java.util.List;
 public class SQLGameDAO implements GameDAO {
     private final Gson gson = new Gson();
 
-    public SQLGameDAO() throws DataAccessException, DatabaseServiceException { // Updated signature
+    public SQLGameDAO() throws DataAccessException, DatabaseServiceException {
         createGameTable();
-    }
-    private boolean isConnectionIssue(SQLException e) {
-        String sqlState = e.getSQLState();
-        String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
-
-        if (sqlState != null && sqlState.startsWith("08")) {
-            return true;
-        }
-        return message.contains("communications link failure") ||
-                message.contains("connection refused") ||
-                message.contains("connection timed out") ||
-                message.contains("cannot create poolableconnectionfactory") ||
-                message.contains("unknown host") ||
-                message.contains("network is unreachable");
     }
 
     private void createGameTable() throws DataAccessException, DatabaseServiceException {
@@ -48,7 +34,7 @@ public class SQLGameDAO implements GameDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.executeUpdate();
         } catch (SQLException e) {
-            if (isConnectionIssue(e)) {
+            if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Failed to connect to database for game table creation.", e);
             }
             throw new DataAccessException("Error creating games table", e);
@@ -70,7 +56,7 @@ public class SQLGameDAO implements GameDAO {
             }
             return games;
         } catch (SQLException e) {
-            if (isConnectionIssue(e)) {
+            if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while retrieving all games.", e);
             }
             throw new DataAccessException("Error retrieving all games", e);
@@ -78,7 +64,7 @@ public class SQLGameDAO implements GameDAO {
     }
 
     @Override
-    public GameData getGame(int gameId) throws DataAccessException, DatabaseServiceException { // Updated signature
+    public GameData getGame(int gameId) throws DataAccessException, DatabaseServiceException {
         String sql = "SELECT game_id, white_username, black_username, game_name, game_state FROM games WHERE game_id = ?";
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -92,7 +78,7 @@ public class SQLGameDAO implements GameDAO {
                 return null;
             }
         } catch (SQLException e) {
-            if (isConnectionIssue(e)) {
+            if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while retrieving game.", e);
             }
             throw new DataAccessException("Error retrieving game", e);
@@ -100,7 +86,7 @@ public class SQLGameDAO implements GameDAO {
     }
 
     @Override
-    public void createGame(GameData gameData) throws DataAccessException, DatabaseServiceException { // Updated signature
+    public void createGame(GameData gameData) throws DataAccessException, DatabaseServiceException {
         if (gameExists(gameData.gameID())) {
             throw new DataAccessException("Game already exists");
         }
@@ -120,20 +106,22 @@ public class SQLGameDAO implements GameDAO {
 
             stmt.executeUpdate();
         } catch (SQLException e) {
-            if (isConnectionIssue(e)) {
+            if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while creating game.", e);
             }
-            if (e.getSQLState() != null && (e.getSQLState().equals("23000") || e.getSQLState().equals("23505")) || (e.getErrorCode() == 1062 || e.getErrorCode() == 19)) {
-                throw new DataAccessException("Game already exists", e); // More specific for duplicate
+            if (e.getSQLState() != null && (e.getSQLState().equals("23000") ||
+                    e.getSQLState().equals("23505")) || (e.getErrorCode() == 1062 ||
+                    e.getErrorCode() == 19)) {
+                throw new DataAccessException("Game already exists", e);
             }
             throw new DataAccessException("Error creating game", e);
         } catch (JsonSyntaxException e) {
-            throw new DatabaseServiceException("Error serializing game state for database.", e); // Treat as internal error
+            throw new DatabaseServiceException("Error serializing game state for database.", e);
         }
     }
 
     @Override
-    public void updateGame(GameData gameData) throws DataAccessException, DatabaseServiceException { // Updated signature
+    public void updateGame(GameData gameData) throws DataAccessException, DatabaseServiceException {
         String sql = "UPDATE games SET white_username = ?, black_username = ?, game_name = ?, game_state = ? WHERE game_id = ?";
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -150,15 +138,15 @@ public class SQLGameDAO implements GameDAO {
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
-                throw new DataAccessException("Game not found for update"); // Specific data access condition
+                throw new DataAccessException("Game not found for update");
             }
         } catch (SQLException e) {
-            if (isConnectionIssue(e)) {
+            if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while updating game.", e);
             }
             throw new DataAccessException("Error updating game", e);
         } catch (JsonSyntaxException e) {
-            throw new DatabaseServiceException("Error serializing game state for database update.", e); // Treat as internal error
+            throw new DatabaseServiceException("Error serializing game state for database update.", e);
         }
     }
 
@@ -170,14 +158,14 @@ public class SQLGameDAO implements GameDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.executeUpdate();
         } catch (SQLException e) {
-            if (isConnectionIssue(e)) {
+            if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while clearing games.", e);
             }
             throw new DataAccessException("Error clearing games", e);
         }
     }
 
-    private boolean gameExists(int gameId) throws DataAccessException, DatabaseServiceException { // Updated signature
+    private boolean gameExists(int gameId) throws DataAccessException, DatabaseServiceException {
         String sql = "SELECT 1 FROM games WHERE game_id = ?";
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -188,7 +176,7 @@ public class SQLGameDAO implements GameDAO {
                 return rs.next();
             }
         } catch (SQLException e) {
-            if (isConnectionIssue(e)) {
+            if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while checking if game exists.", e);
             }
             throw new DataAccessException("Error checking if game exists", e);
@@ -196,7 +184,6 @@ public class SQLGameDAO implements GameDAO {
     }
 
     private GameData extractGameDataFromResultSet(ResultSet rs) throws SQLException, DataAccessException, DatabaseServiceException {
-        // SQLException is declared to be caught by the caller
         int gameId = rs.getInt("game_id");
         String whiteUsername = rs.getString("white_username");
         String blackUsername = rs.getString("black_username");
@@ -206,12 +193,10 @@ public class SQLGameDAO implements GameDAO {
         try {
             ChessGame game = gson.fromJson(gameStateJson, ChessGame.class);
             if (game == null && gameStateJson != null && !gameStateJson.equalsIgnoreCase("null")) {
-                // This indicates a potentially corrupted or unexpected JSON that GSON couldn't parse to ChessGame
                 throw new DatabaseServiceException("Failed to deserialize game state from database: JSON parsed to null for game ID " + gameId);
             }
             return new GameData(gameId, whiteUsername, blackUsername, gameName, game);
         } catch (JsonSyntaxException e) {
-            // This is a critical error if data in DB is corrupt
             throw new DatabaseServiceException("Error deserializing game state from database for game ID " + gameId, e);
         }
     }

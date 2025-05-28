@@ -8,25 +8,11 @@ import java.sql.SQLException;
 
 public class SQLAuthDAO implements AuthDAO {
 
-    public SQLAuthDAO() throws DataAccessException, DatabaseServiceException { // Updated signature
+    public SQLAuthDAO() throws DataAccessException, DatabaseServiceException {
         createAuthTokenTable();
     }
-    private boolean isConnectionIssue(SQLException e) {
-        String sqlState = e.getSQLState();
-        String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
 
-        if (sqlState != null && sqlState.startsWith("08")) {
-            return true;
-        }
-        return message.contains("communications link failure") ||
-                message.contains("connection refused") ||
-                message.contains("connection timed out") ||
-                message.contains("cannot create poolableconnectionfactory") ||
-                message.contains("unknown host") ||
-                message.contains("network is unreachable");
-    }
-
-    private void createAuthTokenTable() throws DataAccessException, DatabaseServiceException { // Updated signature
+    private void createAuthTokenTable() throws DataAccessException, DatabaseServiceException {
         String sql = """
                 CREATE TABLE IF NOT EXISTS auth_tokens (
                     auth_token VARCHAR(255) NOT NULL PRIMARY KEY,
@@ -38,7 +24,7 @@ public class SQLAuthDAO implements AuthDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.executeUpdate();
         } catch (SQLException e) {
-            if (isConnectionIssue(e)) {
+            if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Failed to connect to database for auth table creation.", e);
             }
             throw new DataAccessException("Error creating auth token table", e);
@@ -46,7 +32,7 @@ public class SQLAuthDAO implements AuthDAO {
     }
 
     @Override
-    public AuthData getAuthToken(String authToken) throws DataAccessException, DatabaseServiceException { // Updated signature
+    public AuthData getAuthToken(String authToken) throws DataAccessException, DatabaseServiceException {
         String sql = "SELECT auth_token, username FROM auth_tokens WHERE auth_token = ?";
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -60,7 +46,7 @@ public class SQLAuthDAO implements AuthDAO {
                 return null;
             }
         } catch (SQLException e) {
-            if (isConnectionIssue(e)) {
+            if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while getting auth token.", e);
             }
             throw new DataAccessException("Error getting auth token", e);
@@ -68,7 +54,7 @@ public class SQLAuthDAO implements AuthDAO {
     }
 
     @Override
-    public void createAuthToken(AuthData authData) throws DataAccessException, DatabaseServiceException { // Updated signature
+    public void createAuthToken(AuthData authData) throws DataAccessException, DatabaseServiceException {
         String sql = "INSERT INTO auth_tokens (auth_token, username) VALUES (?, ?)";
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -78,10 +64,12 @@ public class SQLAuthDAO implements AuthDAO {
 
             stmt.executeUpdate();
         } catch (SQLException e) {
-            if (isConnectionIssue(e)) {
+            if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while creating auth token.", e);
             }
-            if (e.getSQLState() != null && (e.getSQLState().equals("23000") || e.getSQLState().equals("23505")) || (e.getErrorCode() == 1062 || e.getErrorCode() == 19)) {
+            if (e.getSQLState() != null && (e.getSQLState().equals("23000") ||
+                    e.getSQLState().equals("23505")) || (e.getErrorCode() == 1062 ||
+                    e.getErrorCode() == 19)) {
                 throw new DataAccessException("Auth token already exists", e);
             }
             throw new DataAccessException("Error creating auth token", e);
@@ -89,7 +77,7 @@ public class SQLAuthDAO implements AuthDAO {
     }
 
     @Override
-    public void deleteAuthToken(String authToken) throws DataAccessException, DatabaseServiceException { // Updated signature
+    public void deleteAuthToken(String authToken) throws DataAccessException, DatabaseServiceException {
         String sql = "DELETE FROM auth_tokens WHERE auth_token = ?";
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -101,7 +89,7 @@ public class SQLAuthDAO implements AuthDAO {
                 throw new DataAccessException("Error: unauthorized");
             }
         } catch (SQLException e) {
-            if (isConnectionIssue(e)) {
+            if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while deleting auth token.", e);
             }
             throw new DataAccessException("Error deleting auth token", e);
@@ -116,7 +104,7 @@ public class SQLAuthDAO implements AuthDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.executeUpdate();
         } catch (SQLException e) {
-            if (isConnectionIssue(e)) {
+            if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while clearing auth tokens.", e);
             }
             throw new DataAccessException("Error clearing auth tokens", e);
