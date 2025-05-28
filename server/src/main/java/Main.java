@@ -8,6 +8,5 @@ public class Main {
 
         Server server = new Server();
         server.run(8080);
-        //fake commit so i can check style idk it won't let me from last one
     }
 }

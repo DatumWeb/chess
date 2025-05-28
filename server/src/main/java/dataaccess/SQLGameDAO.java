@@ -75,7 +75,7 @@ public class SQLGameDAO implements GameDAO {
                 if (rs.next()) {
                     return extractGameDataFromResultSet(rs);
                 }
-                return null;
+                throw new DataAccessException("Game not found for ID " + gameId);
             }
         } catch (SQLException e) {
             if (SQLDAOUtils.isConnectionIssue(e)) {
