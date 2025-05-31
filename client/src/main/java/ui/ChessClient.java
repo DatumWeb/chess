@@ -3,7 +3,6 @@ package ui;
 import java.util.Scanner;
 
 public class ChessClient {
-    private final String serverUrl;
     private final ServerFacade server;
     private final Scanner scanner;
     private REPLState currentREPLState;
@@ -13,8 +12,8 @@ public class ChessClient {
     }
 
     public ChessClient(String serverUrl) {
-        this.serverUrl = serverUrl;
-        this.scanner = new Scanner(System.in);
+        server = new ServerFacade(serverUrl);
+        scanner = new Scanner(System.in);
         currentREPLState = REPLState.PRELOGIN;
     }
 
@@ -25,7 +24,7 @@ public class ChessClient {
             try {
                 switch (currentREPLState) {
                     case PRELOGIN -> {
-                        PreloginUIREPL preloginUIREPL = PreloginUIREPL(server, scanner);
+                        PreloginUIREPL preloginUIREPL = new PreloginUIREPL(server, scanner);
                         var result = preloginUIREPL.run();
                     }
                 }
