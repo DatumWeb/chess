@@ -42,7 +42,7 @@ public class PostloginUIREPL {
                         }
                     }
                     case "observe" -> {
-                        if (handleObserveGame()) {
+                        if (handleJoinGame()) { //fix this
                             return Result.ENTER_GAME;
                         }
                     }
@@ -79,4 +79,40 @@ public class PostloginUIREPL {
             return false;
         }
     }
+
+    private void handleCreateGame() {
+        System.out.print("Game name: ");
+        String gameName = scanner.nextLine().trim();
+
+        if (gameName.isEmpty()) {
+            System.err.println("Game name cannot be empty.");
+            return;
+        }
+
+        try {
+            server.createGame(gameName, authToken);
+            System.out.println("Game '" + gameName + "' created successfully.");
+        } catch (Exception e) {
+            System.err.println("Failed to create game: " + e.getMessage());
+        }
+    }
+
+    private void handleListGames() {
+        try {
+            var result = server.listGames(authToken);
+        } catch (Exception e) {
+            System.err.println("Failed to list games: " + e.getMessage());
+        }
+    }
+
+    private boolean handleJoinGame() {
+        if (gameList == null || gameList.length == 0) {
+            System.err.println("No games available. Use 'list' to see available games.");
+            return false;
+        }
+
+
+        return false;
+    }
+
 }
