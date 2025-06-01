@@ -28,6 +28,11 @@ public class ServerFacade {
         return this.makeRequest("POST", path, body, null, AuthResult.class);
     }
 
+    public void logout(String authToken) throws Exception {
+        var path = "/session";
+        this.makeRequest("DELETE", path, null, authToken, null);
+    }
+
     private <T> T makeRequest(String method, String path, Object request, String authToken, Class<T> responseClass) throws Exception {
         try {
             URL url = (new URI(serverUrl + path)).toURL();

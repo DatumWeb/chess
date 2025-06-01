@@ -57,4 +57,26 @@ public class PostloginUIREPL {
             }
         }
     }
+
+    private void displayHelp() {
+        System.out.println("Available commands:");
+        System.out.println("  create <NAME> - a game");
+        System.out.println("  list - games");
+        System.out.println("  join <ID> [WHITE|BLACK] - a game");
+        System.out.println("  observe <ID> - a game");
+        System.out.println("  logout - when you are done");
+        System.out.println("  quit - to exit");
+        System.out.println("  help - to display this message");
+    }
+
+    private boolean handleLogout() {
+        try {
+            server.logout(authToken);
+            System.out.println("Successfully logged out.");
+            return true;
+        } catch (Exception e) {
+            System.err.println("Logout failed: " + e.getMessage());
+            return false;
+        }
+    }
 }
