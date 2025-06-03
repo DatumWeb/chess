@@ -23,8 +23,8 @@ public class PostloginUIREPL {
         while (true) {
             System.out.print("[LOGGED_IN] >>> ");
             String input = scanner.nextLine().trim();
-            String[] tokens = input.split("\\s+");
-            String command = tokens.length > 0 ? tokens[0].toLowerCase() : "";
+            String[] inputTokens = input.split("\\s+");
+            String command = inputTokens.length > 0 ? inputTokens[0].toLowerCase() : "";
 
             try {
                 switch (command) {
@@ -34,7 +34,7 @@ public class PostloginUIREPL {
                             return Result.LOGOUT;
                         }
                     }
-                    case "create" -> handleCreateGame();
+                    case "create" -> handleCreateGame(inputTokens);
                     case "list" -> handleListGames();
                     case "join" -> {
                         if (handleJoinGame()) {
@@ -80,14 +80,13 @@ public class PostloginUIREPL {
         }
     }
 
-    private void handleCreateGame() {
-        System.out.print("Game name: ");
-        String gameName = scanner.nextLine().trim();
-
-        if (gameName.isEmpty()) {
-            System.err.println("Game name cannot be empty.");
+    private void handleCreateGame(String[] inputTokens) {
+        if (inputTokens.length < 2) {
+            System.err.println("Error: Should be: create <Game Name>");
             return;
         }
+
+        String gameName = inputTokens[1];
 
         try {
             server.createGame(gameName, authToken);
@@ -97,9 +96,25 @@ public class PostloginUIREPL {
         }
     }
 
+
     private void handleListGames() {
         try {
             var result = server.listGames(authToken);
+            gameList = result.games;
+
+            if (gameList.length == 0) {
+                System.out.println("No games available.");
+                return;
+            }
+
+            System.out.println("Available games:");
+            for (int i = 0; i < gameList.length; i++) {
+                var game = gameList[i];
+                String white = game.whiteUsername != null ? game.whiteUsername : "empty";
+                String black = game.blackUsername != null ? game.blackUsername : "empty";
+                System.out.printf("%d. %s - White: %s, Black: %s%n",
+                        i + 1, game.gameName, white, black);
+            }
         } catch (Exception e) {
             System.err.println("Failed to list games: " + e.getMessage());
         }
