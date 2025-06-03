@@ -182,7 +182,6 @@ public class PostloginUIREPL {
 
             System.out.println("Observing game...");
 
-            // Optionally: fetch game by ID and draw real board here
             drawChessBoard(true);
 
             return true;
@@ -211,9 +210,9 @@ public class PostloginUIREPL {
         int[] cols = whitesPerspective ? new int[]{1,2,3,4,5,6,7,8} : new int[]{8,7,6,5,4,3,2,1};
         char[] colLabels = whitesPerspective ? new char[]{'a','b','c','d','e','f','g','h'} : new char[]{'h','g','f','e','d','c','b','a'};
 
-        System.out.print("    ");
-        for (char label : colLabels) {
-            System.out.print(" " + label + " ");
+        System.out.print("   ");
+        for (char col : colLabels) {
+            System.out.print(" " + col + " ");
         }
         System.out.println();
 
@@ -225,44 +224,42 @@ public class PostloginUIREPL {
                 ChessPiece piece = board.getPiece(pos);
 
                 boolean isLight = (row + col) % 2 == 0;
-                String bgColor = isLight ? EscapeSequences.SET_BG_COLOR_WHITE : EscapeSequences.SET_BG_COLOR_DARK_GREEN;
-                String textColor = piece != null && piece.getTeamColor() == ChessGame.TeamColor.WHITE ?
-                        EscapeSequences.SET_TEXT_COLOR_RED : EscapeSequences.SET_TEXT_COLOR_BLUE;
+                String bgColor = isLight ? EscapeSequences.SET_BG_COLOR_WHITE : EscapeSequences.SET_BG_COLOR_MAGENTA;
+                String textColor = piece != null && piece.getTeamColor() == ChessGame.TeamColor.WHITE
+                        ? EscapeSequences.SET_TEXT_COLOR_RED
+                        : EscapeSequences.SET_TEXT_COLOR_BLACK;
 
                 String pieceStr = getPieceString(piece);
-                System.out.print(bgColor + textColor + pieceStr + EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR);
+                System.out.print(bgColor + textColor + pieceStr + EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_BG_COLOR);
             }
 
             System.out.println(" " + row);
         }
 
-        System.out.print("    ");
-        for (char label : colLabels) {
-            System.out.print(" " + label + " ");
+        System.out.print("   ");
+        for (char col : colLabels) {
+            System.out.print(" " + col + " ");
         }
         System.out.println();
     }
 
     private String getPieceString(ChessPiece piece) {
         if (piece == null) {
-            return EscapeSequences.EMPTY;
+            return "   ";
         }
 
-        return switch (piece.getPieceType()) {
-            case KING -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ?
-                    EscapeSequences.WHITE_KING : EscapeSequences.BLACK_KING;
-            case QUEEN -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ?
-                    EscapeSequences.WHITE_QUEEN : EscapeSequences.BLACK_QUEEN;
-            case BISHOP -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ?
-                    EscapeSequences.WHITE_BISHOP : EscapeSequences.BLACK_BISHOP;
-            case KNIGHT -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ?
-                    EscapeSequences.WHITE_KNIGHT : EscapeSequences.BLACK_KNIGHT;
-            case ROOK -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ?
-                    EscapeSequences.WHITE_ROOK : EscapeSequences.BLACK_ROOK;
-            case PAWN -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ?
-                    EscapeSequences.WHITE_PAWN : EscapeSequences.BLACK_PAWN;
+        char pieceChar = switch (piece.getPieceType()) {
+            case KING -> 'K';
+            case QUEEN -> 'Q';
+            case BISHOP -> 'B';
+            case KNIGHT -> 'N';
+            case ROOK -> 'R';
+            case PAWN -> 'P';
         };
+
+        return " " + pieceChar + " ";
     }
+
 
 
 
