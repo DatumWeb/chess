@@ -17,6 +17,9 @@ public class ServerFacade {
         serverUrl = url;
     }
     public AuthResult register(String username, String password, String email) throws Exception {
+        if (username == null || username.isEmpty() || password == null || password.isEmpty() || email == null || email.isEmpty()) {
+            throw new IllegalArgumentException("Invalid registration data: Username, password, and email must be provided.");
+        }
         var path = "/user";
         var body = Map.of("username", username, "password", password, "email", email);
         return this.makeRequest("POST", path, body, null, AuthResult.class);
@@ -34,6 +37,9 @@ public class ServerFacade {
     }
 
     public GameResult createGame(String gameName, String authToken) throws Exception {
+        if (gameName == null || gameName.isEmpty()) {
+            throw new IllegalArgumentException("Game name cannot be null or empty");
+        }
         var path = "/game";
         var body = Map.of("gameName", gameName);
         return this.makeRequest("POST", path, body, authToken, GameResult.class);
@@ -50,7 +56,7 @@ public class ServerFacade {
     }
 
 
-    private <T> T makeRequest(String method, String path, Object request, String authToken, Class<T> responseClass) throws Exception {
+    public <T> T makeRequest(String method, String path, Object request, String authToken, Class<T> responseClass) throws Exception {
         try {
             URL url = (new URI(serverUrl + path)).toURL();
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
@@ -105,10 +111,10 @@ public class ServerFacade {
             if (errorStream != null) {
                 InputStreamReader reader = new InputStreamReader(errorStream);
                 var errorResponse = gson.fromJson(reader, Map.class);
-                return (String) errorResponse.get("message");
+                return errorResponse.getOrDefault("message", "Unknown error").toString();
             }
         }
-        return http.getResponseMessage();
+        return http.getResponseMessage() != null ? http.getResponseMessage() : "Unknown error";
     }
 
     public static class AuthResult {
@@ -128,5 +134,10 @@ public class ServerFacade {
         public String whiteUsername;
         public String blackUsername;
         public String gameName;
+    }
+
+    public void clear() throws Exception {
+        var path = "/db";
+        this.makeRequest("DELETE", path, null, null, null);
     }
 }
