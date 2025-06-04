@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.Map;
+
 public class ServerFacade {
     private final String serverUrl;
     private final Gson gson = new Gson();
@@ -16,24 +17,46 @@ public class ServerFacade {
     public ServerFacade(String url) {
         serverUrl = url;
     }
+
     public AuthResult register(String username, String password, String email) throws Exception {
         if (username == null || username.isEmpty() || password == null || password.isEmpty() || email == null || email.isEmpty()) {
             throw new IllegalArgumentException("Invalid registration data: Username, password, and email must be provided.");
         }
         var path = "/user";
         var body = Map.of("username", username, "password", password, "email", email);
-        return this.makeRequest("POST", path, body, null, AuthResult.class);
+        try {
+            return this.makeRequest("POST", path, body, null, AuthResult.class);
+        } catch (Exception e) {
+            if (e.getMessage().contains("HTTP Error: 403")) {
+                throw new Exception("User already exists");
+            }
+            throw e;
+        }
     }
 
     public AuthResult login(String username, String password) throws Exception {
         var path = "/session";
         var body = Map.of("username", username, "password", password);
-        return this.makeRequest("POST", path, body, null, AuthResult.class);
+        try {
+            return this.makeRequest("POST", path, body, null, AuthResult.class);
+        } catch (Exception e) {
+            if (e.getMessage().contains("HTTP Error: 401")) {
+                throw new Exception("Invalid username or password");
+            }
+            throw e;
+        }
     }
 
     public void logout(String authToken) throws Exception {
         var path = "/session";
-        this.makeRequest("DELETE", path, null, authToken, null);
+        try {
+            this.makeRequest("DELETE", path, null, authToken, null);
+        } catch (Exception e) {
+            if (e.getMessage().contains("HTTP Error: 401")) {
+                throw new Exception("Invalid authentication token");
+            }
+            throw e;
+        }
     }
 
     public GameResult createGame(String gameName, String authToken) throws Exception {
@@ -42,19 +65,46 @@ public class ServerFacade {
         }
         var path = "/game";
         var body = Map.of("gameName", gameName);
-        return this.makeRequest("POST", path, body, authToken, GameResult.class);
+        try {
+            return this.makeRequest("POST", path, body, authToken, GameResult.class);
+        } catch (Exception e) {
+            if (e.getMessage().contains("HTTP Error: 401")) {
+                throw new Exception("Invalid authentication token");
+            }
+            throw e;
+        }
     }
+
     public ListGamesResult listGames(String authToken) throws Exception {
         var path = "/game";
-        return this.makeRequest("GET", path, null, authToken, ListGamesResult.class);
+        try {
+            return this.makeRequest("GET", path, null, authToken, ListGamesResult.class);
+        } catch (Exception e) {
+            if (e.getMessage().contains("HTTP Error: 401")) {
+                throw new Exception("Invalid authentication token");
+            }
+            throw e;
+        }
     }
 
     public void joinGame(int gameID, String playerColor, String authToken) throws Exception {
         var path = "/game";
         var body = Map.of("gameID", gameID, "playerColor", playerColor);
-        this.makeRequest("PUT", path, body, authToken, null);
+        try {
+            this.makeRequest("PUT", path, body, authToken, null);
+        } catch (Exception e) {
+            if (e.getMessage().contains("HTTP Error: 401")) {
+                throw new Exception("Invalid authentication token");
+            } else if (e.getMessage().contains("HTTP Error: 403")) {
+                throw new Exception("Color already taken or forbidden action");
+            } else if (e.getMessage().contains("HTTP Error: 400") ||
+                    e.getMessage().contains("HTTP Error: 404") ||
+                    e.getMessage().contains("HTTP Error: 500")) {
+                throw new Exception("Invalid game ID or player color");
+            }
+            throw e;
+        }
     }
-
 
     public <T> T makeRequest(String method, String path, Object request, String authToken, Class<T> responseClass) throws Exception {
         try {
@@ -73,6 +123,9 @@ public class ServerFacade {
 
             return readBody(http, responseClass);
         } catch (Exception ex) {
+            if (ex.getMessage().startsWith("HTTP Error:")) {
+                throw ex;
+            }
             throw new Exception("Request failed: " + ex.getMessage());
         }
     }
@@ -111,16 +164,17 @@ public class ServerFacade {
             if (errorStream != null) {
                 InputStreamReader reader = new InputStreamReader(errorStream);
                 var errorResponse = gson.fromJson(reader, Map.class);
-                return errorResponse.getOrDefault("message", "Unknown error").toString();
+                return errorResponse.getOrDefault("message", "An unexpected error occurred").toString();
             }
         }
-        return http.getResponseMessage() != null ? http.getResponseMessage() : "Unknown error";
+        return "An unexpected error occurred";
     }
 
     public static class AuthResult {
         public String username;
         public String authToken;
     }
+
     public static class GameResult {
         public int gameID;
     }

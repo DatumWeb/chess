@@ -53,7 +53,8 @@ public class ServerFacadeTests {
         Exception exception = Assertions.assertThrows(Exception.class, () -> {
             facade.register("duplicateUser", "differentPassword", "different@email.com");
         });
-        Assertions.assertTrue(exception.getMessage().contains("HTTP Error: 403"));
+
+        Assertions.assertTrue(exception.getMessage().contains("User already exists"));
     }
 
     @Test
@@ -86,7 +87,7 @@ public class ServerFacadeTests {
         Exception exception = Assertions.assertThrows(Exception.class, () -> {
             facade.login("loginUser", "wrongPassword");
         });
-        Assertions.assertTrue(exception.getMessage().contains("HTTP Error: 401"));
+        Assertions.assertTrue(exception.getMessage().contains("Invalid username or password"));
     }
 
     @Test
@@ -94,9 +95,9 @@ public class ServerFacadeTests {
         Exception exception = Assertions.assertThrows(Exception.class, () -> {
             facade.login("nonexistentUser", "password123");
         });
-        Assertions.assertTrue(exception.getMessage().contains("HTTP Error: 401"));
+        Assertions.assertTrue(exception.getMessage().contains("Invalid username or password"));
     }
-    
+
     @Test
     void logoutValidUser() throws Exception {
         AuthResult authData = facade.register("logoutUser", "password123", "logout@email.com");
@@ -111,7 +112,7 @@ public class ServerFacadeTests {
         Exception exception = Assertions.assertThrows(Exception.class, () -> {
             facade.logout("invalidToken123");
         });
-        Assertions.assertTrue(exception.getMessage().contains("HTTP Error: 401"));
+        Assertions.assertTrue(exception.getMessage().contains("Invalid authentication token"));
     }
 
     @Test
@@ -119,7 +120,7 @@ public class ServerFacadeTests {
         Exception exception = Assertions.assertThrows(Exception.class, () -> {
             facade.logout(null);
         });
-        Assertions.assertTrue(exception.getMessage().contains("HTTP Error: 401"));
+        Assertions.assertTrue(exception.getMessage().contains("Invalid authentication token"));
     }
 
     @Test
@@ -136,7 +137,7 @@ public class ServerFacadeTests {
         Exception exception = Assertions.assertThrows(Exception.class, () -> {
             facade.createGame("TestGame", "invalidToken");
         });
-        Assertions.assertTrue(exception.getMessage().contains("HTTP Error: 401"));
+        Assertions.assertTrue(exception.getMessage().contains("Invalid authentication token"));
     }
 
     @Test
@@ -175,7 +176,7 @@ public class ServerFacadeTests {
         Exception exception = Assertions.assertThrows(Exception.class, () -> {
             facade.listGames("invalidToken");
         });
-        Assertions.assertTrue(exception.getMessage().contains("HTTP Error: 401"));
+        Assertions.assertTrue(exception.getMessage().contains("Invalid authentication token"));
     }
 
     @Test
@@ -196,7 +197,7 @@ public class ServerFacadeTests {
         Exception exception = Assertions.assertThrows(Exception.class, () -> {
             facade.joinGame(gameResult.gameID, "WHITE", "invalidToken");
         });
-        Assertions.assertTrue(exception.getMessage().contains("HTTP Error: 401"));
+        Assertions.assertTrue(exception.getMessage().contains("Invalid authentication token"));
     }
 
     @Test
@@ -206,7 +207,8 @@ public class ServerFacadeTests {
         Exception exception = Assertions.assertThrows(Exception.class, () -> {
             facade.joinGame(999999, "WHITE", authData.authToken);
         });
-        Assertions.assertTrue(exception.getMessage().contains("HTTP Error"));
+
+        Assertions.assertTrue(exception.getMessage().contains("Invalid game ID"));
     }
 
     @Test
@@ -220,7 +222,7 @@ public class ServerFacadeTests {
         Exception exception = Assertions.assertThrows(Exception.class, () -> {
             facade.joinGame(gameResult.gameID, "WHITE", authData2.authToken);
         });
-        Assertions.assertTrue(exception.getMessage().contains("HTTP Error: 403"));
+        Assertions.assertTrue(exception.getMessage().contains("Color already taken"));
     }
 
     @Test
@@ -231,6 +233,7 @@ public class ServerFacadeTests {
         Exception exception = Assertions.assertThrows(Exception.class, () -> {
             facade.joinGame(gameResult.gameID, "PURPLE", authData.authToken);
         });
-        Assertions.assertTrue(exception.getMessage().contains("HTTP Error"));
+        Assertions.assertTrue(exception.getMessage().contains("Invalid") &&
+                exception.getMessage().contains("color"));
     }
 }
