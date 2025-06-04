@@ -19,30 +19,21 @@ public class PreloginUIREPL {
             String command = inputTokens.length > 0 ? inputTokens[0].toLowerCase() : "";
 
             try {
-                switch (command) {
-                    case "help" -> displayHelp();
-                    case "quit", "exit" -> {
-                        System.out.println("Goodbye!");
-                        System.exit(0);
-                    }
-                    case "login" -> {
-                        var result = handleLogin(inputTokens);
-                        if (result != null) {
-                            return result;
-                        }
-                    }
-                    case "register" -> {
-                        var result = handleRegister(inputTokens);
-                        if (result != null) {
-                            return result;
-                        }
-                    }
-                    default -> System.out.println("Unknown command. Type 'help' for available commands.");
-                }
+                return processCommand(command, inputTokens);
             } catch (Exception e) {
                 System.err.println("Error: " + e.getMessage());
             }
         }
+    }
+
+    private ServerFacade.AuthResult processCommand(String command, String[] inputTokens) throws Exception {
+        return switch (command) {
+            case "help" -> { displayHelp(); yield null; }
+            case "quit", "exit" -> { System.out.println("Goodbye!"); System.exit(0); yield null; }
+            case "login" -> handleLogin(inputTokens);
+            case "register" -> handleRegister(inputTokens);
+            default -> { System.out.println("Unknown command. Type 'help' for available commands."); yield null; }
+        };
     }
 
     private void displayHelp() {

@@ -27,34 +27,38 @@ public class PostloginUIREPL {
             String command = inputTokens.length > 0 ? inputTokens[0].toLowerCase() : "";
 
             try {
-                switch (command) {
-                    case "help" -> displayHelp();
-                    case "logout" -> {
-                        if (handleLogout()) {
-                            return Result.LOGOUT;
-                        }
-                    }
-                    case "create" -> handleCreateGame(inputTokens);
-                    case "list" -> handleListGames();
-                    case "join" -> {
-                        if (handleJoinGame(inputTokens)) {
-                            return Result.ENTER_GAME;
-                        }
-                    }
-                    case "observe" -> {
-                        if (handleObserveGame(inputTokens)) {
-                            return Result.ENTER_GAME;
-                        }
-                    }
-                    case "quit", "exit" -> {
-                        System.out.println("Goodbye!");
-                        System.exit(0);
-                    }
-                    default -> System.out.println("Unknown command. Type 'help' for available commands.");
-                }
+                return processCommand(command, inputTokens);
             } catch (Exception e) {
                 System.err.println("Error: " + e.getMessage());
             }
+        }
+    }
+
+    private Result processCommand(String command, String[] inputTokens) throws Exception {
+        switch (command) {
+            case "help":
+                displayHelp();
+                return Result.CONTINUE;
+            case "logout":
+                return handleLogout() ? Result.LOGOUT : Result.CONTINUE;
+            case "create":
+                handleCreateGame(inputTokens);
+                return Result.CONTINUE;
+            case "list":
+                handleListGames();
+                return Result.CONTINUE;
+            case "join":
+                return handleJoinGame(inputTokens) ? Result.ENTER_GAME : Result.CONTINUE;
+            case "observe":
+                return handleObserveGame(inputTokens) ? Result.ENTER_GAME : Result.CONTINUE;
+            case "quit":
+            case "exit":
+                System.out.println("Goodbye!");
+                System.exit(0);
+                return Result.CONTINUE;
+            default:
+                System.out.println("Unknown command. Type 'help' for available commands.");
+                return Result.CONTINUE;
         }
     }
 
@@ -121,41 +125,42 @@ public class PostloginUIREPL {
     }
 
     private boolean handleJoinGame(String[] inputTokens) {
+        if (!validateGameList()) return false;
+        if (!validateJoinInputs(inputTokens)) return false;
+
+        int gameNum = Integer.parseInt(inputTokens[1]);
+        String color = inputTokens[2].toUpperCase();
+        var game = gameList[gameNum - 1];
+
+        return tryJoiningGame(game, color);
+    }
+
+    private boolean validateGameList() {
         if (gameList == null || gameList.length == 0) {
             System.err.println("No games available. Use 'list' to see available games.");
             return false;
         }
+        return true;
+    }
 
+    private boolean validateJoinInputs(String[] inputTokens) {
         if (inputTokens.length < 3) {
             System.err.println("Error: Should be: join <Game Number> <WHITE/BLACK>");
             return false;
         }
+        return true;
+    }
 
-        String gameNumStr = inputTokens[1];
-        String color = inputTokens[2].toUpperCase();
-
+    private boolean tryJoiningGame(ServerFacade.GameInfo game, String color) {
         try {
-            int gameNum = Integer.parseInt(gameNumStr);
-            if (gameNum < 1 || gameNum > gameList.length) {
-                System.err.println("Invalid game number. Must be between 1 and " + gameList.length);
-                return false;
-            }
-
             if (!color.equals("WHITE") && !color.equals("BLACK")) {
                 System.err.println("Color must be WHITE or BLACK.");
                 return false;
             }
-
-            var game = gameList[gameNum - 1];
             server.joinGame(game.gameID, color, authToken);
             System.out.println("Successfully joined game as " + color);
-
             drawChessBoard(color.equals("WHITE"));
-
             return true;
-        } catch (NumberFormatException e) {
-            System.err.println("Game number must be a valid integer.");
-            return false;
         } catch (Exception e) {
             System.err.println("Failed to join game: " + e.getMessage());
             return false;

@@ -22,28 +22,30 @@ public class ChessClient {
     public void run() {
         System.out.println("♕ Welcome to 240 Chess Client ♕");
 
-        while(true) {
+        while (true) {
             try {
                 switch (currentREPLState) {
-                    case PRELOGIN -> {
-                        PreloginUIREPL preloginUIREPL = new PreloginUIREPL(server, scanner);
-                        var result = preloginUIREPL.run();
-                        if (result != null) {
-                            authToken = result.authToken;
-                            currentUser = result.username;
-                            currentREPLState = REPLState.POSTLOGIN;
-                        }
-                    }
-                    case POSTLOGIN -> {
-                        PostloginUIREPL postloginUI = new PostloginUIREPL(server, scanner, authToken);
-                        var result = postloginUI.run();
-                    }
-
+                    case PRELOGIN -> handlePrelogin();
+                    case POSTLOGIN -> handlePostlogin();
                 }
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }
-
         }
+    }
+
+    private void handlePrelogin() throws Exception {
+        PreloginUIREPL preloginUIREPL = new PreloginUIREPL(server, scanner);
+        var result = preloginUIREPL.run();
+        if (result != null) {
+            authToken = result.authToken;
+            currentUser = result.username;
+            currentREPLState = REPLState.POSTLOGIN;
+        }
+    }
+
+    private void handlePostlogin() throws Exception {
+        PostloginUIREPL postloginUI = new PostloginUIREPL(server, scanner, authToken);
+        postloginUI.run();
     }
 }
