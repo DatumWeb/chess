@@ -125,8 +125,12 @@ public class PostloginUIREPL {
     }
 
     private boolean handleJoinGame(String[] inputTokens) {
-        if (!validateGameList()) return false;
-        if (!validateJoinInputs(inputTokens)) return false;
+        if (!validateGameList()) {
+            return false;
+        }
+        if (!validateJoinInputs(inputTokens)) {
+            return false;
+        }
 
         int gameNum = Integer.parseInt(inputTokens[1]);
         String color = inputTokens[2].toUpperCase();
