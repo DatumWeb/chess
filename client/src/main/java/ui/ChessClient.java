@@ -46,6 +46,21 @@ public class ChessClient {
 
     private void handlePostlogin() throws Exception {
         PostloginUIREPL postloginUI = new PostloginUIREPL(server, scanner, authToken);
-        postloginUI.run();
+        PostloginUIREPL.Result result;
+
+        do {
+            result = postloginUI.run();
+
+            if (result == PostloginUIREPL.Result.LOGOUT) {
+                authToken = null;
+                currentUser = null;
+                currentREPLState = REPLState.PRELOGIN;
+                break;
+            } else if (result == PostloginUIREPL.Result.ENTER_GAME) {
+                currentREPLState = REPLState.GAMEPLAY;
+                break;
+            }
+        } while (result == PostloginUIREPL.Result.CONTINUE);
     }
+
 }

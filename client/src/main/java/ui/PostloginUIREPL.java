@@ -20,19 +20,19 @@ public class PostloginUIREPL {
     }
 
     public Result run() {
-        while (true) {
-            System.out.print("[LOGGED_IN] >>> ");
-            String input = scanner.nextLine().trim();
-            String[] inputTokens = input.split("\\s+");
-            String command = inputTokens.length > 0 ? inputTokens[0].toLowerCase() : "";
+        System.out.print("[LOGGED_IN] >>> ");
+        String input = scanner.nextLine().trim();
+        String[] inputTokens = input.split("\\s+");
+        String command = inputTokens.length > 0 ? inputTokens[0].toLowerCase() : "";
 
-            try {
-                return processCommand(command, inputTokens);
-            } catch (Exception e) {
-                System.err.println("Error: " + e.getMessage());
-            }
+        try {
+            return processCommand(command, inputTokens);
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+            return Result.CONTINUE;
         }
     }
+
 
     private Result processCommand(String command, String[] inputTokens) throws Exception {
         switch (command) {
@@ -132,11 +132,21 @@ public class PostloginUIREPL {
             return false;
         }
 
-        int gameNum = Integer.parseInt(inputTokens[1]);
-        String color = inputTokens[2].toUpperCase();
-        var game = gameList[gameNum - 1];
+        try {
+            int gameNum = Integer.parseInt(inputTokens[1]);
+            if (gameNum < 1 || gameNum > gameList.length) {
+                System.err.println("Invalid game number. Must be between 1 and " + gameList.length);
+                return false;
+            }
 
-        return tryJoiningGame(game, color);
+            String color = inputTokens[2].toUpperCase();
+            var game = gameList[gameNum - 1];
+
+            return tryJoiningGame(game, color);
+        } catch (NumberFormatException e) {
+            System.err.println("Game number must be a valid integer.");
+            return false;
+        }
     }
 
     private boolean validateGameList() {
@@ -161,10 +171,21 @@ public class PostloginUIREPL {
                 System.err.println("Color must be WHITE or BLACK.");
                 return false;
             }
+
+            if (color.equals("WHITE") && game.whiteUsername != null) {
+                System.err.println("White player slot is already taken by " + game.whiteUsername);
+                return false;
+            }
+            if (color.equals("BLACK") && game.blackUsername != null) {
+                System.err.println("Black player slot is already taken by " + game.blackUsername);
+                return false;
+            }
+
             server.joinGame(game.gameID, color, authToken);
             System.out.println("Successfully joined game as " + color);
+
             drawChessBoard(color.equals("WHITE"));
-            return true;
+            return false;
         } catch (Exception e) {
             System.err.println("Failed to join game: " + e.getMessage());
             return false;
@@ -190,10 +211,9 @@ public class PostloginUIREPL {
             }
 
             System.out.println("Observing game...");
-
             drawChessBoard(true);
 
-            return true;
+            return false;
 
         } catch (NumberFormatException e) {
             System.err.println("Game number must be a valid integer.");
@@ -233,7 +253,7 @@ public class PostloginUIREPL {
                 ChessPiece piece = board.getPiece(pos);
 
                 boolean isLight = (row + col) % 2 == 0;
-                String bgColor = isLight ? EscapeSequences.SET_BG_COLOR_WHITE : EscapeSequences.SET_BG_COLOR_MAGENTA;
+                String bgColor = isLight ? EscapeSequences.SET_BG_COLOR_MAGENTA : EscapeSequences.SET_BG_COLOR_WHITE;
                 String textColor = piece != null && piece.getTeamColor() == ChessGame.TeamColor.WHITE
                         ? EscapeSequences.SET_TEXT_COLOR_RED
                         : EscapeSequences.SET_TEXT_COLOR_BLACK;
@@ -268,8 +288,4 @@ public class PostloginUIREPL {
 
         return " " + pieceChar + " ";
     }
-
-
-
-
 }
