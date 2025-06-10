@@ -1,6 +1,10 @@
 package ui;
 
-import chess.*;
+import chess.ChessBoard;
+import chess.ChessGame;
+import chess.ChessPiece;
+import chess.ChessPosition;
+import websocket.WebSocketClientHandler;
 import java.util.Scanner;
 
 public class PostloginUIREPL {
@@ -8,6 +12,8 @@ public class PostloginUIREPL {
     private final Scanner scanner;
     private final String authToken;
     private ServerFacade.GameInfo[] gameList;
+    private Integer selectedGameID;
+    private String selectedPlayerColor;
 
     public enum Result {
         LOGOUT, ENTER_GAME, CONTINUE
@@ -32,7 +38,6 @@ public class PostloginUIREPL {
             return Result.CONTINUE;
         }
     }
-
 
     private Result processCommand(String command, String[] inputTokens) throws Exception {
         switch (command) {
@@ -99,7 +104,6 @@ public class PostloginUIREPL {
             System.err.println("Failed to create game: " + e.getMessage());
         }
     }
-
 
     private void handleListGames() {
         try {
@@ -182,10 +186,13 @@ public class PostloginUIREPL {
             }
 
             server.joinGame(game.gameID, color, authToken);
-            System.out.println("Successfully joined game as " + color);
 
+            this.selectedGameID = game.gameID;
+            this.selectedPlayerColor = color;
+
+            System.out.println("Successfully joined game as " + color);
             drawChessBoard(color.equals("WHITE"));
-            return false;
+            return true;
         } catch (Exception e) {
             System.err.println("Failed to join game: " + e.getMessage());
             return false;
@@ -211,10 +218,12 @@ public class PostloginUIREPL {
             }
 
             System.out.println("Observing game...");
+
+            this.selectedGameID = gameList[gameNum - 1].gameID;
+            this.selectedPlayerColor = "WHITE";
+
             drawChessBoard(true);
-
-            return false;
-
+            return true;
         } catch (NumberFormatException e) {
             System.err.println("Game number must be a valid integer.");
             return false;
@@ -223,7 +232,6 @@ public class PostloginUIREPL {
             return false;
         }
     }
-
 
     private void drawChessBoard(boolean whitesPerspective) {
         ChessBoard board = new ChessBoard();
@@ -287,5 +295,13 @@ public class PostloginUIREPL {
         };
 
         return " " + pieceChar + " ";
+    }
+
+    public Integer getSelectedGameID() {
+        return selectedGameID;
+    }
+
+    public String getSelectedPlayerColor() {
+        return selectedPlayerColor;
     }
 }

@@ -4,10 +4,13 @@ import java.util.Scanner;
 
 public class ChessClient {
     private final ServerFacade server;
+    private final String serverUrl;
     private final Scanner scanner;
     private REPLState currentREPLState;
     private String authToken;
     private String currentUser;
+    private Integer currentGameID;
+    private String currentPlayerColor;
 
     private enum REPLState {
         PRELOGIN, POSTLOGIN, GAMEPLAY
@@ -15,6 +18,7 @@ public class ChessClient {
 
     public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
+        this.serverUrl = serverUrl;
         scanner = new Scanner(System.in);
         currentREPLState = REPLState.PRELOGIN;
     }
@@ -27,6 +31,7 @@ public class ChessClient {
                 switch (currentREPLState) {
                     case PRELOGIN -> handlePrelogin();
                     case POSTLOGIN -> handlePostlogin();
+                    case GAMEPLAY -> handleGameplay();
                 }
             } catch (Exception e) {
                 System.err.println(e.getMessage());
@@ -57,10 +62,23 @@ public class ChessClient {
                 currentREPLState = REPLState.PRELOGIN;
                 break;
             } else if (result == PostloginUIREPL.Result.ENTER_GAME) {
+                currentGameID = postloginUI.getSelectedGameID();
+                currentPlayerColor = postloginUI.getSelectedPlayerColor();
                 currentREPLState = REPLState.GAMEPLAY;
                 break;
             }
         } while (result == PostloginUIREPL.Result.CONTINUE);
+    }
+
+    private void handleGameplay() throws Exception {
+        GameplayUIREPL gameplayUI = new GameplayUIREPL(this.serverUrl, authToken, currentGameID, currentPlayerColor);
+        gameplayUI.run();
+
+        currentREPLState = REPLState.POSTLOGIN;
+
+        currentGameID = null;
+        currentPlayerColor = null;
+        System.out.println("You have left the game. Returning to the main menu.");
     }
 
 }

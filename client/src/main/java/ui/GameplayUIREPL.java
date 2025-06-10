@@ -24,26 +24,44 @@ public class GameplayUIREPL {
         sendConnectMessage();
     }
 
+    public enum Result {
+        EXIT_GAME,
+        LOGOUT,
+        CONTINUE
+    }
+
     private void sendConnectMessage() {
         UserGameCommand connectCommand = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
         webSocketClient.sendMessage(connectCommand);
         System.out.println("Connected to the game. Type 'help' for available commands.");
     }
 
-    public void run() {
-        while (true) {
-            System.out.print("[GAMEPLAY] >>> ");
-            String input = scanner.nextLine().trim();
-            String[] inputTokens = input.split("\\s+");
-            String command = inputTokens.length > 0 ? inputTokens[0].toLowerCase() : "";
+    public GameplayUIREPL.Result run() {
+        System.out.print("[GAMEPLAY] >>> ");
+        String input;
+
+        while ((input = scanner.nextLine()) != null) {
+            String[] tokens = input.trim().split("\\s+");
+            String command = tokens.length > 0 ? tokens[0].toLowerCase() : "";
+
+            if (command.equals("leave")) {
+                sendLeaveMessage();
+                return Result.EXIT_GAME;
+            }
+            if (command.equals("logout")) {
+                return Result.LOGOUT;
+            }
 
             try {
-                processCommand(command, inputTokens);
+                processCommand(command, tokens);
                 processIncomingMessages();
             } catch (Exception e) {
                 System.err.println("Error: " + e.getMessage());
             }
+            System.out.print("[GAMEPLAY] >>> ");
         }
+
+        return Result.EXIT_GAME;
     }
 
     private void processCommand(String command, String[] inputTokens) {
