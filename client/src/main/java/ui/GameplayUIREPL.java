@@ -177,4 +177,42 @@ public class GameplayUIREPL {
             System.out.println("Resignation cancelled.");
         }
     }
+
+    private void handleMove(String[] inputTokens) {
+        if (inputTokens.length < 3) {
+            System.err.println("Usage: move <from> <to> (example: 'move a2 a4')");
+            return;
+        }
+
+        try {
+            ChessPosition start = parsePosition(inputTokens[1]);
+            ChessPosition end = parsePosition(inputTokens[2]);
+
+            ChessMove move = new ChessMove(start, end, null);
+
+            MakeMoveCommand moveCommand = new MakeMoveCommand(authToken, gameID, move);
+            webSocketClient.sendMessage(moveCommand);
+        } catch (Exception e) {
+            System.err.println("Invalid move format: " + e.getMessage());
+        }
+    }
+
+    private ChessPosition parsePosition(String pos) {
+        if (pos.length() != 2) {
+            throw new IllegalArgumentException("Position must be 2 characters (e.g., 'e2')");
+        }
+
+        char colChar = pos.charAt(0);
+        char rowChar = pos.charAt(1);
+
+        int col = colChar - 'a' + 1;
+        int row = rowChar - '0';
+
+        if (col < 1 || col > 8 || row < 1 || row > 8) {
+            throw new IllegalArgumentException("Position out of bounds");
+        }
+
+        return new ChessPosition(row, col);
+    }
+
 }
