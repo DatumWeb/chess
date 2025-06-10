@@ -158,4 +158,23 @@ public class GameplayUIREPL {
 
         return " " + pieceChar + " ";
     }
+
+    private void sendLeaveMessage() {
+        UserGameCommand leaveCommand = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID);
+        webSocketClient.sendMessage(leaveCommand);
+        System.out.println("Left the game.");
+    }
+
+    private void sendResignMessage() {
+        System.out.print("Are you sure you want to resign? (yes/no): ");
+        String confirmation = scanner.nextLine().trim().toLowerCase();
+
+        if (confirmation.equals("yes") || confirmation.equals("y")) {
+            UserGameCommand resignCommand = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
+            webSocketClient.sendMessage(resignCommand);
+            System.out.println("Resigned from the game.");
+        } else {
+            System.out.println("Resignation cancelled.");
+        }
+    }
 }
