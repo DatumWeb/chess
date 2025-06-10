@@ -215,4 +215,22 @@ public class GameplayUIREPL {
         return new ChessPosition(row, col);
     }
 
+    private void handleHighlight(String[] inputTokens) {
+        if (inputTokens.length < 2) {
+            System.err.println("Usage: highlight <position> (e.g., 'highlight e2')");
+            return;
+        }
+
+        try {
+            ChessPosition position = parsePosition(inputTokens[1]);
+
+            if (currentGame != null) {
+                var validMoves = currentGame.validMoves(position);
+                boolean whitesPerspective = playerColor == null || playerColor.equals("WHITE");
+                drawBoard(currentGame.getBoard(), whitesPerspective, validMoves);
+            }
+        } catch (Exception e) {
+            System.err.println("Invalid position: " + e.getMessage());
+        }
+    }
 }
