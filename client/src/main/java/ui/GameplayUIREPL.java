@@ -36,10 +36,9 @@ public class GameplayUIREPL {
         System.out.println("Connected to the game. Type 'help' for available commands.");
     }
 
-    public GameplayUIREPL.Result run() {
+    public Result run() {
         System.out.print("[GAMEPLAY] >>> ");
         String input;
-
         while ((input = scanner.nextLine()) != null) {
             String[] tokens = input.trim().split("\\s+");
             String command = tokens.length > 0 ? tokens[0].toLowerCase() : "";
@@ -60,7 +59,6 @@ public class GameplayUIREPL {
             }
             System.out.print("[GAMEPLAY] >>> ");
         }
-
         return Result.EXIT_GAME;
     }
 

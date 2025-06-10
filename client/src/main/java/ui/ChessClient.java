@@ -71,10 +71,16 @@ public class ChessClient {
     }
 
     private void handleGameplay() throws Exception {
-        GameplayUIREPL gameplayUI = new GameplayUIREPL(this.serverUrl, authToken, currentGameID, currentPlayerColor);
-        gameplayUI.run();
+        GameplayUIREPL gameplayUI = new GameplayUIREPL(serverUrl, authToken, currentGameID, currentPlayerColor);
+        GameplayUIREPL.Result result = gameplayUI.run();
 
-        currentREPLState = REPLState.POSTLOGIN;
+        if (result == GameplayUIREPL.Result.EXIT_GAME) {
+            currentREPLState = REPLState.POSTLOGIN;
+        } else if (result == GameplayUIREPL.Result.LOGOUT) {
+            authToken = null;
+            currentUser = null;
+            currentREPLState = REPLState.PRELOGIN;
+        }
 
         currentGameID = null;
         currentPlayerColor = null;
