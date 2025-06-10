@@ -5,7 +5,11 @@ import service.*;
 import spark.*;
 import dataaccess.*;
 import com.google.gson.Gson;
+import websocket.WebSocketHandler;
+
 import java.util.Map;
+
+import static spark.Spark.webSocket;
 
 public class Server {
     private ClearService clearService;
@@ -21,6 +25,8 @@ public class Server {
         Spark.port(desiredPort);
 
         Spark.staticFiles.location("web");
+        webSocket("/ws", WebSocketHandler.class);
+
 
         setupGlobalExceptionHandlers();
 

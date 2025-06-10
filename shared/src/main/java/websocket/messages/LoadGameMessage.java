@@ -3,7 +3,7 @@ package websocket.messages;
 import chess.ChessGame;
 
 
-class LoadGameMessage extends ServerMessage {
+public class LoadGameMessage extends ServerMessage {
     private final ChessGame game;
 
     public LoadGameMessage(ChessGame game) {

@@ -24,12 +24,13 @@ public class SQLUserDAO implements UserDAO {
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.executeUpdate();
         } catch (SQLException e) {
             if (SQLDAOUtils.isConnectionIssue(e)) {
-                throw new DatabaseServiceException("Failed to connect to database for table creation.", e);
+                throw new DatabaseServiceException("Failed to connect to database while creating users table.", e);
             }
-            throw new DataAccessException("Error creating users table", e);
+            throw new DataAccessException("Error creating users table.", e);
         }
     }
 
@@ -39,6 +40,7 @@ public class SQLUserDAO implements UserDAO {
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, username);
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -49,26 +51,27 @@ public class SQLUserDAO implements UserDAO {
                             rs.getString("email")
                     );
                 }
-                return null;
+                return null; // User not found
             }
         } catch (SQLException e) {
             if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while retrieving user.", e);
             }
-            throw new DataAccessException("Error retrieving user", e);
+            throw new DataAccessException("Error retrieving user.", e);
         }
     }
 
     @Override
     public void createUser(UserData userData) throws DataAccessException, DatabaseServiceException {
         if (userExists(userData.username())) {
-            throw new DataAccessException("Error: already taken");
+            throw new DataAccessException("Error: Username already taken.");
         }
 
         String sql = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, userData.username());
             stmt.setString(2, userData.password());
             stmt.setString(3, userData.email());
@@ -78,12 +81,13 @@ public class SQLUserDAO implements UserDAO {
             if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while creating user.", e);
             }
-            if (e.getSQLState() != null && (e.getSQLState().equals("23000") ||
-                    e.getSQLState().equals("23505")) || (e.getErrorCode() == 1062 ||
-                    e.getErrorCode() == 19)) {
-                throw new DataAccessException("Error: already taken", e);
+            // Check for duplicate entry based on SQL state or error code.
+            if (e.getSQLState() != null &&
+                    (e.getSQLState().equals("23000") || e.getSQLState().equals("23505")) ||
+                    (e.getErrorCode() == 1062 || e.getErrorCode() == 19)) {
+                throw new DataAccessException("Error: Username already taken.", e);
             }
-            throw new DataAccessException("Error creating user", e);
+            throw new DataAccessException("Error creating user.", e);
         }
     }
 
@@ -93,12 +97,13 @@ public class SQLUserDAO implements UserDAO {
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.executeUpdate();
         } catch (SQLException e) {
             if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while clearing users.", e);
             }
-            throw new DataAccessException("Error clearing users", e);
+            throw new DataAccessException("Error clearing users.", e);
         }
     }
 
@@ -107,6 +112,7 @@ public class SQLUserDAO implements UserDAO {
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, username);
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -116,7 +122,7 @@ public class SQLUserDAO implements UserDAO {
             if (SQLDAOUtils.isConnectionIssue(e)) {
                 throw new DatabaseServiceException("Database connection error while checking if user exists.", e);
             }
-            throw new DataAccessException("Error checking if user exists", e);
+            throw new DataAccessException("Error checking if user exists.", e);
         }
     }
 }
