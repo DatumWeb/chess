@@ -134,6 +134,16 @@ public class WebSocketHandler {
             ChessMove move = moveCommand.getMove();
             ChessGame game = gameData.game();
 
+            String username = authData.username();
+            ChessGame.TeamColor expectedTeam = game.getTeamTurn();
+
+            if ((expectedTeam == ChessGame.TeamColor.WHITE && !username.equals(gameData.whiteUsername())) ||
+                    (expectedTeam == ChessGame.TeamColor.BLACK && !username.equals(gameData.blackUsername()))) {
+                sendError(session, "Error: Not your turn!");
+                return;
+            }
+
+
             try {
                 game.makeMove(move);
             } catch (InvalidMoveException e) {
