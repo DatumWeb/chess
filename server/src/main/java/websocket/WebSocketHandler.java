@@ -70,7 +70,7 @@ public class WebSocketHandler {
                     handleMakeMove(session, message);
                     break;
                 case LEAVE:
-                    //handleLeave(session, command);
+                    handleLeave(session, command);
                     break;
                 case RESIGN:
                     handleResign(session, command);
@@ -206,6 +206,43 @@ public class WebSocketHandler {
 
         } catch (Exception e) {
             sendError(session, "Error resigning game: " + e.getMessage());
+        }
+    }
+
+    private void handleLeave(Session session, UserGameCommand command) {
+        try {
+            var authData = authDAO.getAuthToken(command.getAuthToken());
+            if (authData == null) {
+                sendError(session, "Error: Invalid auth token");
+                return;
+            }
+
+            Integer gameID = command.getGameID();
+            String username = authData.username();
+
+            var sessions = gameSessions.get(gameID);
+            if (sessions != null) {
+                sessions.remove(command.getAuthToken());
+                if (sessions.isEmpty()) {
+                    gameSessions.remove(gameID);
+                }
+            }
+
+            GameData gameData = gameDAO.getGame(gameID);
+            if (gameData != null) {
+                if (username.equals(gameData.whiteUsername())) {
+                    gameDAO.updateGame(new GameData(gameID, null, gameData.blackUsername(), gameData.gameName(), gameData.game()));
+                } else if (username.equals(gameData.blackUsername())) {
+                    gameDAO.updateGame(new GameData(gameID, gameData.whiteUsername(), null, gameData.gameName(), gameData.game()));
+                }
+            }
+
+            sendNotificationToOthers(gameID, command.getAuthToken(), username + " has left the game.");
+
+            System.out.println("User " + username + " left game " + gameID);
+
+        } catch (Exception e) {
+            sendError(session, "Error leaving game: " + e.getMessage());
         }
     }
 
