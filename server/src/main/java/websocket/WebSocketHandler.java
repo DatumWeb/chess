@@ -185,13 +185,20 @@ public class WebSocketHandler {
                 return;
             }
 
+            ChessGame game = gameData.game();
+
+            if (game.isGameOver()) {
+                sendError(session, "Error: Game is already over. No further resignations allowed.");
+                return;
+            }
+
             String username = authData.username();
             if (!username.equals(gameData.whiteUsername()) && !username.equals(gameData.blackUsername())) {
                 sendError(session, "Error: Only players can resign.");
                 return;
             }
 
-            ChessGame game = gameData.game();
+
             game.setGameOver(true);
             gameDAO.updateGame(gameData);
 
