@@ -1,5 +1,9 @@
 package websocket;
 
+import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
@@ -12,6 +16,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import server.DAOFactory;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -57,10 +62,21 @@ public class WebSocketHandler {
     public void onMessage(Session session, String message) {
         try {
             UserGameCommand command = gson.fromJson(message, UserGameCommand.class);
-            if (command.getCommandType().equals(UserGameCommand.CommandType.CONNECT)) {
-                handleConnect(session, command);
-            } else {
-                sendError(session, "Unsupported command type");
+            switch (command.getCommandType()) {
+                case CONNECT:
+                    handleConnect(session, command);
+                    break;
+                case MAKE_MOVE:
+                    handleMakeMove(session, message);
+                    break;
+                case LEAVE:
+                    //handleLeave(session, command);
+                    break;
+                case RESIGN:
+                    //handleResign(session, command);
+                    break;
+                default:
+                    sendError(session, "Unsupported command type");
             }
         } catch (Exception e) {
             sendError(session, "Error processing command: " + e.getMessage());
@@ -98,6 +114,124 @@ public class WebSocketHandler {
             sendError(session, "Error connecting to game: " + e.getMessage());
         }
     }
+
+    private void handleMakeMove(Session session, String message) {
+        try {
+            MakeMoveCommand moveCommand = gson.fromJson(message, MakeMoveCommand.class);
+
+            var authData = authDAO.getAuthToken(moveCommand.getAuthToken());
+            if (authData == null) {
+                sendError(session, "Error: Invalid auth token");
+                return;
+            }
+
+            GameData gameData = gameDAO.getGame(moveCommand.getGameID());
+            if (gameData == null) {
+                sendError(session, "Error: Game not found");
+                return;
+            }
+
+            ChessMove move = moveCommand.getMove();
+            ChessGame game = gameData.game();
+
+            try {
+                game.makeMove(move);
+            } catch (InvalidMoveException e) {
+                sendError(session, "Error: " + e.getMessage());
+                return;
+            }
+
+            gameDAO.updateGame(gameData);
+
+            String moveStr = formatMove(move);
+            sendNotificationToOthers(moveCommand.getGameID(), moveCommand.getAuthToken(), authData.username() + " moved: " + moveStr);
+
+            sendGameStateToAll(moveCommand.getGameID(), game);
+
+            checkGameState(moveCommand.getGameID(), game);
+
+        } catch (Exception e) {
+            sendError(session, "Error processing move: " + e.getMessage());
+        }
+    }
+
+    private String formatMove(ChessMove move) {
+        return String.format("%s to %s",
+                positionToString(move.getStartPosition()),
+                positionToString(move.getEndPosition()));
+    }
+
+    private String positionToString(ChessPosition pos) {
+        char col = (char) ('a' + pos.getColumn() - 1);
+        return "" + col + pos.getRow();
+    }
+
+    private void sendNotificationToAll(Integer gameID, String notificationMessage) {
+        var sessions = gameSessions.get(gameID);
+        if (sessions != null) {
+            sessions.values().forEach(session -> sendToSession(session, new NotificationMessage(notificationMessage)));
+        }
+    }
+
+    private void sendGameStateToAll(Integer gameID, ChessGame game) {
+        var sessions = gameSessions.get(gameID);
+        if (sessions != null) {
+            sessions.values().forEach(session -> sendToSession(session, new LoadGameMessage(game)));
+        }
+    }
+
+    private void checkGameState(Integer gameID, ChessGame game) {
+        try {
+            ChessGame.TeamColor currentTeam = game.getTeamTurn();
+
+            if (game.isInCheckmate(currentTeam)) {
+                String teamName = (currentTeam == ChessGame.TeamColor.WHITE) ? "White" : "Black";
+                sendNotificationToAll(gameID, teamName + " is in checkmate");
+                game.setGameOver(true);
+                gameDAO.updateGame(new GameData(gameID, gameDataWhite(gameID), gameDataBlack(gameID), gameDataName(gameID), game));
+            } else if (game.isInStalemate(currentTeam)) {
+                sendNotificationToAll(gameID, "Game ended in stalemate");
+                game.setGameOver(true);
+                gameDAO.updateGame(new GameData(gameID, gameDataWhite(gameID), gameDataBlack(gameID), gameDataName(gameID), game));
+            } else if (game.isInCheck(currentTeam)) {
+                String teamName = (currentTeam == ChessGame.TeamColor.WHITE) ? "White" : "Black";
+                sendNotificationToAll(gameID, teamName + " is in check");
+            }
+        } catch (Exception e) {
+            System.err.println("Error checking game state: " + e.getMessage());
+        }
+    }
+
+    private String gameDataWhite(Integer gameID) {
+        try {
+            GameData gameData = gameDAO.getGame(gameID);
+            return gameData.whiteUsername();
+        } catch (Exception e) {
+            System.err.println("Error retrieving white username for game " + gameID + ": " + e.getMessage());
+            return "";
+        }
+    }
+
+    private String gameDataBlack(Integer gameID) {
+        try {
+            GameData gameData = gameDAO.getGame(gameID);
+            return gameData.blackUsername();
+        } catch (Exception e) {
+            System.err.println("Error retrieving black username for game " + gameID + ": " + e.getMessage());
+            return "";
+        }
+    }
+
+    private String gameDataName(Integer gameID) {
+        try {
+            GameData gameData = gameDAO.getGame(gameID);
+            return gameData.gameName();
+        } catch (Exception e) {
+            System.err.println("Error retrieving game name for game " + gameID + ": " + e.getMessage());
+            return "";
+        }
+    }
+
 
     private void sendNotificationToOthers(Integer gameID, String excludeAuthToken, String notificationMessage) {
         var sessions = gameSessions.get(gameID);
