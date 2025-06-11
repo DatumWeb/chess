@@ -156,24 +156,101 @@ public class GameplayUIREPL {
             return;
         }
 
+        if (currentGame == null) {
+            System.err.println("Error: No game loaded. Please wait for the game to load.");
+            return;
+        }
+
         try {
             ChessPosition start = parsePosition(inputTokens[1]);
             ChessPosition end = parsePosition(inputTokens[2]);
 
-            // Check if promotion is needed (you may want to add this logic)
+            // Validate that there's a piece at the start position
+            ChessPiece piece = currentGame.getBoard().getPiece(start);
+            if (piece == null) {
+                System.err.println("Error: No piece at position " + inputTokens[1]);
+                return;
+            }
+
+            // Check if it's the player's turn and they own the piece
+            ChessGame.TeamColor currentTurn = currentGame.getTeamTurn();
+            if (!isPlayersTurn(currentTurn)) {
+                System.err.println("Error: It's not your turn!");
+                return;
+            }
+
+            if (piece.getTeamColor() != getPlayerTeamColor()) {
+                System.err.println("Error: You can only move your own pieces!");
+                return;
+            }
+
+            // Check if the game is over
+            if (currentGame.isGameOver()) {
+                System.err.println("Error: The game is over. No more moves allowed.");
+                return;
+            }
+
+            // Check if promotion is needed for pawn moves
             ChessPiece.PieceType promotionPiece = null;
-            if (inputTokens.length > 3) {
-                promotionPiece = parsePromotionPiece(inputTokens[3]);
+            if (piece.getPieceType() == ChessPiece.PieceType.PAWN) {
+                if ((piece.getTeamColor() == ChessGame.TeamColor.WHITE && end.getRow() == 8) ||
+                        (piece.getTeamColor() == ChessGame.TeamColor.BLACK && end.getRow() == 1)) {
+
+                    if (inputTokens.length > 3) {
+                        promotionPiece = parsePromotionPiece(inputTokens[3]);
+                    } else {
+                        // Prompt for promotion piece
+                        System.out.print("Pawn promotion! Enter piece (queen/rook/bishop/knight): ");
+                        String promotionInput = scanner.nextLine().trim();
+                        promotionPiece = parsePromotionPiece(promotionInput);
+                    }
+                }
             }
 
             ChessMove move = new ChessMove(start, end, promotionPiece);
 
+            // Validate the move locally before sending to server
+            var validMoves = currentGame.validMoves(start);
+            boolean isValidMove = validMoves.contains(move);
+
+            if (!isValidMove) {
+                System.err.println("Error: Invalid move! That move is not allowed.");
+                System.out.println("Valid moves from " + inputTokens[1] + ":");
+                for (ChessMove validMove : validMoves) {
+                    System.out.println("  " + positionToString(validMove.getStartPosition()) +
+                            " to " + positionToString(validMove.getEndPosition()));
+                }
+                return;
+            }
+
+            // Send the move to the server
             MakeMoveCommand moveCommand = new MakeMoveCommand(authToken, gameID, move);
             webSocketClient.sendMessage(moveCommand);
+
+            System.out.println("Move sent: " + inputTokens[1] + " to " + inputTokens[2]);
+
         } catch (Exception e) {
-            System.err.println("Invalid move format: " + e.getMessage());
+            System.err.println("Error making move: " + e.getMessage());
         }
     }
+
+    private boolean isPlayersTurn(ChessGame.TeamColor currentTurn) {
+        ChessGame.TeamColor playerTeam = getPlayerTeamColor();
+        return playerTeam != null && playerTeam == currentTurn;
+    }
+
+    private ChessGame.TeamColor getPlayerTeamColor() {
+        if (playerColor == null) {
+            return null; // Observer
+        }
+        return playerColor.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+    }
+
+    private String positionToString(ChessPosition pos) {
+        char col = (char) ('a' + pos.getColumn() - 1);
+        return "" + col + pos.getRow();
+    }
+
 
     private ChessPiece.PieceType parsePromotionPiece(String piece) {
         return switch (piece.toLowerCase()) {
