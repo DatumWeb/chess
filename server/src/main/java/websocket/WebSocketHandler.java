@@ -27,9 +27,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @WebSocket
 public class WebSocketHandler {
-    private static final ConcurrentHashMap<Integer, ConcurrentHashMap<String, Session>> gameSessions = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Session, String> sessionToAuth = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Session, Integer> sessionToGame = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, ConcurrentHashMap<String, Session>> GameSessions = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Session, String> SessionToAuth = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Session, Integer> SessionToGame = new ConcurrentHashMap<>();
 
     private final AuthDAO authDAO;
     private final GameDAO gameDAO;
@@ -97,9 +97,9 @@ public class WebSocketHandler {
                 return;
             }
 
-            sessionToAuth.put(session, command.getAuthToken());
-            sessionToGame.put(session, command.getGameID());
-            gameSessions.computeIfAbsent(command.getGameID(), k -> new ConcurrentHashMap<>())
+            SessionToAuth.put(session, command.getAuthToken());
+            SessionToGame.put(session, command.getGameID());
+            GameSessions.computeIfAbsent(command.getGameID(), k -> new ConcurrentHashMap<>())
                     .put(command.getAuthToken(), session);
 
             sendToSession(session, new LoadGameMessage(gameData.game()));
@@ -220,11 +220,11 @@ public class WebSocketHandler {
             Integer gameID = command.getGameID();
             String username = authData.username();
 
-            var sessions = gameSessions.get(gameID);
+            var sessions = GameSessions.get(gameID);
             if (sessions != null) {
                 sessions.remove(command.getAuthToken());
                 if (sessions.isEmpty()) {
-                    gameSessions.remove(gameID);
+                    GameSessions.remove(gameID);
                 }
             }
 
@@ -258,14 +258,14 @@ public class WebSocketHandler {
     }
 
     private void sendNotificationToAll(Integer gameID, String notificationMessage) {
-        var sessions = gameSessions.get(gameID);
+        var sessions = GameSessions.get(gameID);
         if (sessions != null) {
             sessions.values().forEach(session -> sendToSession(session, new NotificationMessage(notificationMessage)));
         }
     }
 
     private void sendGameStateToAll(Integer gameID, ChessGame game) {
-        var sessions = gameSessions.get(gameID);
+        var sessions = GameSessions.get(gameID);
         if (sessions != null) {
             sessions.values().forEach(session -> sendToSession(session, new LoadGameMessage(game)));
         }
@@ -325,7 +325,7 @@ public class WebSocketHandler {
 
 
     private void sendNotificationToOthers(Integer gameID, String excludeAuthToken, String notificationMessage) {
-        var sessions = gameSessions.get(gameID);
+        var sessions = GameSessions.get(gameID);
         if (sessions != null) {
             sessions.entrySet().stream()
                     .filter(entry -> !entry.getKey().equals(excludeAuthToken))
@@ -334,14 +334,14 @@ public class WebSocketHandler {
     }
 
     private void cleanupSession(Session session) {
-        String authToken = sessionToAuth.remove(session);
-        Integer gameID = sessionToGame.remove(session);
+        String authToken = SessionToAuth.remove(session);
+        Integer gameID = SessionToGame.remove(session);
         if (authToken != null && gameID != null) {
-            var sessions = gameSessions.get(gameID);
+            var sessions = GameSessions.get(gameID);
             if (sessions != null) {
                 sessions.remove(authToken);
                 if (sessions.isEmpty()) {
-                    gameSessions.remove(gameID);
+                    GameSessions.remove(gameID);
                 }
             }
         }
