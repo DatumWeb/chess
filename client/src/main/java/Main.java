@@ -4,12 +4,14 @@ import ui.ChessClient;
 
 public class Main {
     public static void main(String[] args) {
-        String serverUrl = "http://localhost:8080";
+        String wsUrl = "ws://localhost:8080/ws";
+        String httpUrl = "http://localhost:8080";
+
         if (args.length > 0) {
-            serverUrl = args[0];
+            wsUrl = args[0];
         }
 
-        ChessClient client = new ChessClient(serverUrl);
+        ChessClient client = new ChessClient(httpUrl, wsUrl);
         client.run();
     }
 }

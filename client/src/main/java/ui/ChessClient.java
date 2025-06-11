@@ -1,10 +1,14 @@
 package ui;
 
+import websocket.WebSocketClientHandler;
+
 import java.util.Scanner;
 
 public class ChessClient {
     private final ServerFacade server;
-    private final String serverUrl;
+    private final WebSocketClientHandler webSocketClient;
+    private final String httpServerUrl;
+    private final String wsServerUrl;
     private final Scanner scanner;
     private REPLState currentREPLState;
     private String authToken;
@@ -16,11 +20,13 @@ public class ChessClient {
         PRELOGIN, POSTLOGIN, GAMEPLAY
     }
 
-    public ChessClient(String serverUrl) {
-        server = new ServerFacade(serverUrl);
-        this.serverUrl = serverUrl;
-        scanner = new Scanner(System.in);
-        currentREPLState = REPLState.PRELOGIN;
+    public ChessClient(String httpServerUrl, String wsServerUrl) {
+        this.server = new ServerFacade(httpServerUrl);
+        this.webSocketClient = new WebSocketClientHandler(wsServerUrl);
+        this.httpServerUrl = httpServerUrl;
+        this.wsServerUrl = wsServerUrl;
+        this.scanner = new Scanner(System.in);
+        this.currentREPLState = REPLState.PRELOGIN;
     }
 
     public void run() {
@@ -71,7 +77,7 @@ public class ChessClient {
     }
 
     private void handleGameplay() throws Exception {
-        GameplayUIREPL gameplayUI = new GameplayUIREPL(serverUrl, authToken, currentGameID, currentPlayerColor);
+        GameplayUIREPL gameplayUI = new GameplayUIREPL(wsServerUrl, authToken, currentGameID, currentPlayerColor, webSocketClient);
         GameplayUIREPL.Result result = gameplayUI.run();
 
         if (result == GameplayUIREPL.Result.EXIT_GAME) {
@@ -86,5 +92,4 @@ public class ChessClient {
         currentPlayerColor = null;
         System.out.println("You have left the game. Returning to the main menu.");
     }
-
 }
