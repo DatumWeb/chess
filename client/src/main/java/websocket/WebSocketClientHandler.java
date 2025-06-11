@@ -23,32 +23,6 @@ public class WebSocketClientHandler {
         }
     }
 
-    @OnOpen
-    public void onOpen(Session session) {
-        this.session = session;
-        System.out.println("WebSocket connected to server.");
-    }
-
-    @OnMessage
-    public void onMessage(String message) {
-        try {
-            ServerMessage serverMessage = gson.fromJson(message, ServerMessage.class);
-            messageQueue.put(serverMessage);
-        } catch (Exception e) {
-            System.err.println("Error parsing WebSocket message: " + e.getMessage());
-        }
-    }
-
-    @OnClose
-    public void onClose(Session session, CloseReason reason) {
-        System.out.println("WebSocket closed: " + reason);
-    }
-
-    @OnError
-    public void onError(Session session, Throwable throwable) {
-        System.err.println("WebSocket error: " + throwable.getMessage());
-    }
-
     public void sendMessage(UserGameCommand command) {
         if (session != null && session.isOpen()) {
             String jsonMessage = gson.toJson(command);
