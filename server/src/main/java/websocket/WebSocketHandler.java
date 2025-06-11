@@ -73,7 +73,7 @@ public class WebSocketHandler {
                     //handleLeave(session, command);
                     break;
                 case RESIGN:
-                    //handleResign(session, command);
+                    handleResign(session, command);
                     break;
                 default:
                     sendError(session, "Unsupported command type");
@@ -162,6 +162,37 @@ public class WebSocketHandler {
 
         } catch (Exception e) {
             sendError(session, "Error processing move: " + e.getMessage());
+        }
+    }
+
+    private void handleResign(Session session, UserGameCommand command) {
+        try {
+            var authData = authDAO.getAuthToken(command.getAuthToken());
+            if (authData == null) {
+                sendError(session, "Error: Invalid auth token");
+                return;
+            }
+
+            GameData gameData = gameDAO.getGame(command.getGameID());
+            if (gameData == null) {
+                sendError(session, "Error: Game not found");
+                return;
+            }
+
+            String username = authData.username();
+            if (!username.equals(gameData.whiteUsername()) && !username.equals(gameData.blackUsername())) {
+                sendError(session, "Error: Only players can resign.");
+                return;
+            }
+
+            ChessGame game = gameData.game();
+            game.setGameOver(true);
+            gameDAO.updateGame(gameData);
+
+            sendNotificationToAll(command.getGameID(), username + " has resigned. Game over.");
+
+        } catch (Exception e) {
+            sendError(session, "Error resigning game: " + e.getMessage());
         }
     }
 
