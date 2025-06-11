@@ -134,6 +134,12 @@ public class WebSocketHandler {
             ChessMove move = moveCommand.getMove();
             ChessGame game = gameData.game();
 
+            if (game.isGameOver()) {
+                sendError(session, "Error: Game is already over. No moves allowed.");
+                return;
+            }
+
+
             String username = authData.username();
             ChessGame.TeamColor expectedTeam = game.getTeamTurn();
 
