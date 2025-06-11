@@ -15,6 +15,7 @@ import server.DAOFactory;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -87,9 +88,23 @@ public class WebSocketHandler {
 
             sendToSession(session, new LoadGameMessage(gameData.game()));
 
-            System.out.println("User " + authData.username() + " connected to game " + command.getGameID());
+            String username = authData.username();
+            String notificationMsg = username + " joined the game.";
+            sendNotificationToOthers(command.getGameID(), command.getAuthToken(), notificationMsg);
+
+            System.out.println("User " + username + " connected to game " + command.getGameID());
+
         } catch (Exception e) {
             sendError(session, "Error connecting to game: " + e.getMessage());
+        }
+    }
+
+    private void sendNotificationToOthers(Integer gameID, String excludeAuthToken, String notificationMessage) {
+        var sessions = gameSessions.get(gameID);
+        if (sessions != null) {
+            sessions.entrySet().stream()
+                    .filter(entry -> !entry.getKey().equals(excludeAuthToken))
+                    .forEach(entry -> sendToSession(entry.getValue(), new NotificationMessage(notificationMessage)));
         }
     }
 
