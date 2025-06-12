@@ -191,7 +191,6 @@ public class PostloginUIREPL {
             this.selectedPlayerColor = color;
 
             System.out.println("Successfully joined game as " + color);
-            drawChessBoard(color.equals("WHITE"));
             return true;
         } catch (Exception e) {
             System.err.println("Failed to join game: " + e.getMessage());
