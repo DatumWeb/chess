@@ -221,7 +221,6 @@ public class PostloginUIREPL {
             this.selectedGameID = gameList[gameNum - 1].gameID;
             this.selectedPlayerColor = "WHITE";
 
-            drawChessBoard(true);
             return true;
         } catch (NumberFormatException e) {
             System.err.println("Game number must be a valid integer.");
