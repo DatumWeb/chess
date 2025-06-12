@@ -31,6 +31,8 @@ public class GameplayUIREPL {
         }
 
         sendConnectMessage();
+        new Thread(this::processIncomingMessagesContinuously).start();
+
     }
 
     public enum Result {
@@ -89,6 +91,22 @@ public class GameplayUIREPL {
         ServerMessage message;
         while ((message = webSocketClient.getNextMessage()) != null) {
             handleServerMessage(message);
+        }
+    }
+
+    private void processIncomingMessagesContinuously() {
+        while (true) {
+            ServerMessage message = webSocketClient.getNextMessage();
+            if (message != null) {
+                handleServerMessage(message);
+            }
+
+            try {
+                Thread.sleep(50); // Small delay to avoid CPU overload
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
         }
     }
 
@@ -161,21 +179,18 @@ public class GameplayUIREPL {
             return;
         }
 
+        if (currentGame.isGameOver()) {
+            System.err.println("Error: The game is over. No more moves allowed.");
+            return;
+        }
+
         try {
             ChessPosition start = parsePosition(inputTokens[1]);
             ChessPosition end = parsePosition(inputTokens[2]);
 
-            // Validate that there's a piece at the start position
             ChessPiece piece = currentGame.getBoard().getPiece(start);
             if (piece == null) {
                 System.err.println("Error: No piece at position " + inputTokens[1]);
-                return;
-            }
-
-            // Check if it's the player's turn and they own the piece
-            ChessGame.TeamColor currentTurn = currentGame.getTeamTurn();
-            if (!isPlayersTurn(currentTurn)) {
-                System.err.println("Error: It's not your turn!");
                 return;
             }
 
@@ -184,13 +199,14 @@ public class GameplayUIREPL {
                 return;
             }
 
-            // Check if the game is over
-            if (currentGame.isGameOver()) {
-                System.err.println("Error: The game is over. No more moves allowed.");
+
+
+            ChessGame.TeamColor currentTurn = currentGame.getTeamTurn();
+            if (!isPlayersTurn(currentTurn)) {
+                System.err.println("Error: It's not your turn!");
                 return;
             }
 
-            // Check if promotion is needed for pawn moves
             ChessPiece.PieceType promotionPiece = null;
             if (piece.getPieceType() == ChessPiece.PieceType.PAWN) {
                 if ((piece.getTeamColor() == ChessGame.TeamColor.WHITE && end.getRow() == 8) ||
@@ -199,7 +215,6 @@ public class GameplayUIREPL {
                     if (inputTokens.length > 3) {
                         promotionPiece = parsePromotionPiece(inputTokens[3]);
                     } else {
-                        // Prompt for promotion piece
                         System.out.print("Pawn promotion! Enter piece (queen/rook/bishop/knight): ");
                         String promotionInput = scanner.nextLine().trim();
                         promotionPiece = parsePromotionPiece(promotionInput);
@@ -209,7 +224,6 @@ public class GameplayUIREPL {
 
             ChessMove move = new ChessMove(start, end, promotionPiece);
 
-            // Validate the move locally before sending to server
             var validMoves = currentGame.validMoves(start);
             boolean isValidMove = validMoves.contains(move);
 
@@ -223,7 +237,6 @@ public class GameplayUIREPL {
                 return;
             }
 
-            // Send the move to the server
             MakeMoveCommand moveCommand = new MakeMoveCommand(authToken, gameID, move);
             webSocketClient.sendMessage(moveCommand);
 
@@ -241,7 +254,7 @@ public class GameplayUIREPL {
 
     private ChessGame.TeamColor getPlayerTeamColor() {
         if (playerColor == null) {
-            return null; // Observer
+            return null;
         }
         return playerColor.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
     }

@@ -18,7 +18,6 @@ public class WebSocketClientHandler {
     private final LinkedBlockingQueue<ServerMessage> messageQueue = new LinkedBlockingQueue<>();
 
     public WebSocketClientHandler(String serverUrl) {
-        // Don't connect in constructor - let connect() method handle it
     }
 
     @OnOpen
@@ -52,7 +51,6 @@ public class WebSocketClientHandler {
 
     private ServerMessage parseServerMessage(String message) {
         try {
-            // First, try to determine the message type
             com.google.gson.JsonObject jsonObject = gson.fromJson(message, com.google.gson.JsonObject.class);
             String messageType = jsonObject.get("serverMessageType").getAsString();
 

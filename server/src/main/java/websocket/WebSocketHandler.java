@@ -135,7 +135,7 @@ public class WebSocketHandler {
             ChessGame game = gameData.game();
 
             if (game.isGameOver()) {
-                sendError(session, "Error: Game is already over. No moves allowed.");
+                sendError(session, "Game is already over. No moves allowed.");
                 return;
             }
 
@@ -203,6 +203,7 @@ public class WebSocketHandler {
             gameDAO.updateGame(gameData);
 
             sendNotificationToAll(command.getGameID(), username + " has resigned. Game over.");
+            sendGameStateToAll(command.getGameID(), game);
 
         } catch (Exception e) {
             sendError(session, "Error resigning game: " + e.getMessage());
