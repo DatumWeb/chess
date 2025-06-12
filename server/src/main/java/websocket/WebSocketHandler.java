@@ -203,7 +203,6 @@ public class WebSocketHandler {
             gameDAO.updateGame(gameData);
 
             sendNotificationToAll(command.getGameID(), username + " has resigned. Game over.");
-            sendGameStateToAll(command.getGameID(), game);
 
         } catch (Exception e) {
             sendError(session, "Error resigning game: " + e.getMessage());
