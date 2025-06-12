@@ -38,16 +38,7 @@ public class WebSocketClientHandler {
         }
     }
 
-    @OnClose
-    public void onClose(Session session, CloseReason closeReason) {
-        System.out.println("WebSocket connection closed: " + closeReason.getReasonPhrase());
-        this.session = null;
-    }
 
-    @OnError
-    public void onError(Session session, Throwable throwable) {
-        System.err.println("WebSocket error: " + throwable.getMessage());
-    }
 
     private ServerMessage parseServerMessage(String message) {
         try {
@@ -107,13 +98,4 @@ public class WebSocketClientHandler {
         return session != null && session.isOpen();
     }
 
-    public void disconnect() {
-        if (session != null && session.isOpen()) {
-            try {
-                session.close();
-            } catch (Exception e) {
-                System.err.println("Error closing WebSocket connection: " + e.getMessage());
-            }
-        }
-    }
 }

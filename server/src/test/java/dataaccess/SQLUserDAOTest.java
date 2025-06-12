@@ -41,7 +41,7 @@ class SQLUserDAOTest {
 
         DataAccessException exception = assertThrows(DataAccessException.class, () -> userDAO.createUser(user));
 
-        assertEquals("Error: already taken", exception.getMessage(), "Duplicate username should trigger an exception");
+        assertEquals("Error: Username already taken", exception.getMessage(), "Duplicate username should trigger an exception");
     }
 
     @Test

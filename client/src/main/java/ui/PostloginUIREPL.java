@@ -231,14 +231,6 @@ public class PostloginUIREPL {
         }
     }
 
-    private void drawChessBoard(boolean whitesPerspective) {
-        ChessBoard board = new ChessBoard();
-        board.resetBoard();
-        UIUtils.drawBoard(board, whitesPerspective, null);
-    }
-
-
-
     public Integer getSelectedGameID() {
         return selectedGameID;
     }
